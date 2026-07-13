@@ -12,7 +12,14 @@ from docx.enum.table import WD_TABLE_ALIGNMENT
 from docx.enum.section import WD_ORIENT
 from docx.oxml.ns import qn, nsdecls
 from docx.oxml import parse_xml
-import os
+import os, io, base64
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from model.charts import ChartGenerator
+from model.statistics import VariableClassifier, FrequencyAnalyzer, MeasuresCalculator
 
 APA_FONT = "Times New Roman"
 APA_SIZE = Pt(12)
@@ -44,6 +51,82 @@ def set_row_borders(row, sz_top=None, sz_bottom=None):
         set_cell_borders(cell, top=sz_top, bottom=sz_bottom)
         set_cell_borders(cell, start=True, end=True)
 
+
+def add_formula_image(doc, formula_text, fontsize=14, width_inches=5, height_inches=0.6):
+    fig, ax = plt.subplots(figsize=(width_inches, height_inches))
+    ax.axis('off')
+    ax.text(0.5, 0.5, formula_text, transform=ax.transData,
+            fontsize=fontsize, fontfamily='serif', fontstyle='italic',
+            ha='center', va='center',
+            bbox=dict(boxstyle='round,pad=0.3', facecolor='white', edgecolor='none'))
+    buf = io.BytesIO()
+    fig.savefig(buf, format='png', dpi=200, bbox_inches='tight',
+                transparent=False, facecolor='white')
+    plt.close(fig)
+    buf.seek(0)
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p.paragraph_format.space_before = Pt(6)
+    p.paragraph_format.space_after = Pt(6)
+    run = p.add_run()
+    run.add_picture(buf, width=Inches(width_inches))
+    return p
+
+def add_formula_inline(doc, formula_text, fontsize=14, width_inches=5, height_inches=0.55):
+    fig, ax = plt.subplots(figsize=(width_inches, height_inches))
+    ax.axis('off')
+    fig.patch.set_alpha(0)
+    ax.patch.set_alpha(0)
+    ax.text(0.5, 0.5, formula_text, transform=ax.transData,
+            fontsize=fontsize, fontfamily='serif', fontstyle='italic',
+            ha='center', va='center')
+    buf = io.BytesIO()
+    fig.savefig(buf, format='png', dpi=200, bbox_inches='tight',
+                transparent=True)
+    plt.close(fig)
+    buf.seek(0)
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p.paragraph_format.space_before = Pt(4)
+    p.paragraph_format.space_after = Pt(4)
+    run = p.add_run()
+    run.add_picture(buf, width=Inches(width_inches))
+    return p
+
+def add_sample_chart(doc, chart_title, chart_key, dataframe, var_name, var_type, var_label, note_text=""):
+    freq = FrequencyAnalyzer.compute(dataframe[var_name], var_type, var_name)
+    if freq is None:
+        return
+    charts = ChartGenerator.generate_all_charts(freq, var_name)
+    buf = charts.get(chart_key)
+    if buf is None:
+        return
+    buf.seek(0)
+
+    p = doc.add_paragraph()
+    run = p.add_run(f"Figura. {chart_title}")
+    run.italic = True
+    run.font.name = "Times New Roman"
+    run.font.size = Pt(10)
+    p.paragraph_format.space_before = Pt(12)
+    p.paragraph_format.space_after = Pt(4)
+
+    p_img = doc.add_paragraph()
+    p_img.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    run_img = p_img.add_run()
+    run_img.add_picture(buf, width=Inches(4.5))
+    p_img.paragraph_format.space_after = Pt(4)
+
+    if note_text:
+        p_note = doc.add_paragraph()
+        rl = p_note.add_run("Nota. ")
+        rl.italic = True
+        rl.font.name = "Times New Roman"
+        rl.font.size = Pt(10)
+        rt = p_note.add_run(note_text)
+        rt.font.name = "Times New Roman"
+        rt.font.size = Pt(10)
+        p_note.paragraph_format.space_after = Pt(8)
 
 def add_toc(doc):
     """Insertar campo de Índice (TOC) que se actualiza automáticamente en Word."""
@@ -469,17 +552,29 @@ def generate_report():
     add_body(doc,
         "La regla de Sturges, propuesta por Herbert Sturges en 1926, es un método para determinar "
         "el número óptimo de intervalos (k) en una distribución de frecuencias. La fórmula establece "
-        "que el número de intervalos debe ser aproximadamente k = 1 + 3.322 log₁₀(n), donde n es "
-        "el número de observaciones en el conjunto de datos (Sturges, 1926). Esta regla asume que "
-        "los datos siguen una distribución aproximadamente normal y proporciona un equilibrio entre "
-        "la pérdida de información (muy pocos intervalos) y el exceso de detalle (demasiados intervalos)."
+        "que el número de intervalos debe ser aproximadamente:"
     )
+    add_formula_image(doc, "k = 1 + 3.322 · log₁₀(n)", fontsize=14, height_inches=0.45)
 
     add_body(doc,
-        "En el software desarrollado, la regla de Sturges se aplica automáticamente para variables "
-        "cuantitativas continuas, calculando el rango (R = valor máximo - valor mínimo), el número "
-        "de intervalos (m = 1 + 3.322 · log₁₀(n)) y la amplitud del intervalo (C = R / m). Las "
-        "tablas resultantes incluyen los intervalos, las marcas de clase (Xi), las frecuencias "
+        "donde n es el número de observaciones en el conjunto de datos (Sturges, 1926). Esta regla "
+        "asume que los datos siguen una distribución aproximadamente normal y proporciona un equilibrio "
+        "entre la pérdida de información (muy pocos intervalos) y el exceso de detalle (demasiados "
+        "intervalos). En el software desarrollado, la regla de Sturges se aplica automáticamente para "
+        "variables cuantitativas continuas, calculando el rango:"
+    )
+    add_formula_image(doc, "R = Max(X) − Min(X)", fontsize=14, height_inches=0.40)
+
+    add_body(doc,
+        "el número de intervalos (m) mediante la regla de Sturges:"
+    )
+    add_formula_image(doc, "m = 1 + 3.322 · log₁₀(n)", fontsize=14, height_inches=0.40)
+
+    add_body(doc, "y la amplitud del intervalo (C) como:")
+    add_formula_image(doc, "C = R / m", fontsize=14, height_inches=0.35)
+
+    add_body(doc,
+        "Las tablas resultantes incluyen los intervalos, las marcas de clase (Xi), las frecuencias "
         "absolutas (fi), las frecuencias acumuladas (Fi), las frecuencias relativas (hi), las "
         "frecuencias relativas porcentuales (hi%) y las frecuencias relativas acumuladas porcentuales (Hi%)."
     )
@@ -489,33 +584,56 @@ def generate_report():
     add_body(doc,
         "Las medidas de tendencia central indican los valores alrededor de los cuales se agrupan "
         "los datos. Las principales son: (a) la media aritmética (X̄), que es el promedio de todos "
-        "los valores; (b) la mediana (Me), que es el valor que divide los datos en dos mitades "
-        "iguales; (c) la moda (Mo), que es el valor que más se repite; (d) la media geométrica "
-        "(X̄g), útil para tasas de crecimiento; y (e) la media armónica (Mh), apropiada para "
-        "promediar razones (Lind et al., 2019)."
+        "los valores:"
     )
+    add_formula_image(doc, "X̄ = (Σxᵢ) / n", fontsize=14, height_inches=0.40)
+
+    add_body(doc,
+        "(b) la mediana (Me), que es el valor que divide los datos ordenados en dos mitades "
+        "iguales; (c) la moda (Mo), que es el valor que más se repite; (d) la media geométrica (X̄g), "
+        "útil para tasas de crecimiento:"
+    )
+    add_formula_image(doc, "X̄g = ⁿ√(Πxᵢ)", fontsize=14, height_inches=0.45)
+
+    add_body(doc,
+        "y (e) la media armónica (Mh), apropiada para promediar razones (Lind et al., 2019):"
+    )
+    add_formula_image(doc, "Mh = n / Σ(1/xᵢ)", fontsize=14, height_inches=0.40)
 
     add_heading_custom(doc, "2.2.4 Medidas de Dispersión", level=3)
 
     add_body(doc,
         "Las medidas de dispersión cuantifican la variabilidad o esparcimiento de los datos. "
-        "Las principales son: (a) el rango (R = valor máximo - valor mínimo); (b) la varianza "
-        "muestral (S²), que mide la desviación cuadrática media respecto a la media; (c) la "
-        "desviación estándar (S), que es la raíz cuadrada de la varianza y se expresa en las "
-        "mismas unidades que los datos; y (d) el coeficiente de variación (CV%), que expresa "
-        "la desviación estándar como porcentaje de la media y permite comparar la variabilidad "
-        "de conjuntos de datos con diferentes magnitudes (Anderson et al., 2019)."
+        "Las principales son: (a) el rango:"
     )
+    add_formula_image(doc, "R = Max(X) − Min(X)", fontsize=14, height_inches=0.35)
+
+    add_body(doc, "(b) la varianza muestral (S²):")
+    add_formula_image(doc, "S² = Σ(xᵢ − X̄)² / (n − 1)", fontsize=14, height_inches=0.45)
+
+    add_body(doc, "(c) la desviación estándar (S):")
+    add_formula_image(doc, "S = √S² = √(Σ(xᵢ − X̄)² / (n − 1))", fontsize=14, height_inches=0.45)
+
+    add_body(doc,
+        "y (d) el coeficiente de variación (CV%), que expresa la desviación estándar como "
+        "porcentaje de la media y permite comparar la variabilidad de conjuntos de datos con "
+        "diferentes magnitudes (Anderson et al., 2019):"
+    )
+    add_formula_image(doc, "CV = (S / X̄) · 100%", fontsize=14, height_inches=0.40)
 
     add_heading_custom(doc, "2.2.5 Medidas de Posición", level=3)
 
     add_body(doc,
         "Las medidas de posición dividen el conjunto de datos en partes iguales. Los cuartiles "
         "(Q₁, Q₂, Q₃) dividen los datos en cuatro partes; los deciles (D₁ a D₉) en diez partes; "
-        "y los percentiles (P₁ a P₉₉) en cien partes. Estas medidas son particularmente útiles "
-        "para describir la distribución de los datos y detectar valores atípicos. El software "
-        "calcula los tres cuartiles, los deciles D₁, D₅ y D₉, y los percentiles P₁₀, P₂₅, P₅₀, "
-        "P₇₅ y P₉₀."
+        "y los percentiles (P₁ a P₉₉) en cien partes. La fórmula general para el k-ésimo percentil es:"
+    )
+    add_formula_image(doc, "Pₖ = L + ((k·n/100 − F) / f) · C", fontsize=13, height_inches=0.45, width_inches=5.5)
+
+    add_body(doc,
+        "Estas medidas son particularmente útiles para describir la distribución de los datos y "
+        "detectar valores atípicos. El software calcula los tres cuartiles, los deciles D₁, D₅ y "
+        "D₉, y los percentiles P₁₀, P₂₅, P₅₀, P₇₅ y P₉₀."
     )
 
     add_heading_custom(doc, "2.2.6 Medidas de Forma", level=3)
@@ -523,23 +641,35 @@ def generate_report():
     add_body(doc,
         "Las medidas de forma describen la forma de la distribución de los datos. El coeficiente "
         "de asimetría (g₁) indica si la distribución es simétrica (g₁ ≈ 0), tiene asimetría "
-        "positiva (g₁ > 0, cola a la derecha) o negativa (g₁ < 0, cola a la izquierda). El "
-        "coeficiente de curtosis (g₂) mide el apuntamiento de la distribución: leptocúrtica "
-        "(g₂ > 0, más apuntada que la normal), mesocúrtica (g₂ ≈ 0, similar a la normal) o "
-        "platicúrtica (g₂ < 0, menos apuntada que la normal)."
+        "positiva (g₁ > 0, cola a la derecha) o negativa (g₁ < 0, cola a la izquierda):"
     )
+    add_formula_image(doc, "g₁ = (Σ(xᵢ − X̄)³ / n) / S³", fontsize=14, height_inches=0.45)
+
+    add_body(doc,
+        "El coeficiente de curtosis (g₂) mide el apuntamiento de la distribución: leptocúrtica "
+        "(g₂ > 0, más apuntada que la normal), mesocúrtica (g₂ ≈ 0, similar a la normal) o "
+        "platicúrtica (g₂ < 0, menos apuntada que la normal). Se calcula como:"
+    )
+    add_formula_image(doc, "g₂ = (Σ(xᵢ − X̄)⁴ / n) / S⁴ − 3", fontsize=14, height_inches=0.45)
 
     add_heading_custom(doc, "2.2.7 Muestreo Aleatorio Simple", level=3)
 
     add_body(doc,
         "El Muestreo Aleatorio Simple (M.A.S.) es una técnica de muestreo probabilístico en la "
         "que cada elemento de la población tiene la misma probabilidad de ser seleccionado. Para "
-        "poblaciones desconocidas, el tamaño de muestra se calcula como n = (Z² · p · q) / e², "
+        "poblaciones desconocidas, el tamaño de muestra se calcula como:"
+    )
+    add_formula_image(doc, "n = (Z² · p · q) / e²", fontsize=15, height_inches=0.45, width_inches=4.5)
+
+    add_body(doc,
         "donde Z es el valor crítico de la distribución normal estándar para el nivel de confianza "
-        "dado, p es la probabilidad de éxito, q = 1 - p es la probabilidad de fracaso, y e es el "
-        "error admisible. Para poblaciones conocidas de tamaño N, se aplica la corrección "
-        "nf = n₀ / (1 + n₀/N), donde n₀ es la muestra inicial calculada con la fórmula anterior "
-        "(Cochran, 1977)."
+        "dado, p es la probabilidad de éxito, q = 1 − p es la probabilidad de fracaso, y e es el "
+        "error admisible. Para poblaciones conocidas de tamaño N, se aplica la corrección:"
+    )
+    add_formula_image(doc, "nf = n₀ / (1 + n₀/N)", fontsize=15, height_inches=0.45, width_inches=4.5)
+
+    add_body(doc,
+        "donde n₀ es la muestra inicial calculada con la fórmula anterior (Cochran, 1977)."
     )
 
     add_heading_custom(doc, "2.2.8 Normas APA 7", level=3)
@@ -743,15 +873,46 @@ def generate_report():
         "y sectores completos. Para variables con más de 10 categorías, el sistema aplicó "
         "correctamente la agrupación en la categoría 'Otros'. Los histogramas para variables "
         "continuas utilizaron los intervalos calculados por la regla de Sturges, mostrando "
-        "la forma de la distribución de los datos."
+        "la forma de la distribución de los datos. En las siguientes figuras se muestran "
+        "ejemplos de los gráficos generados por el sistema."
     )
+
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    df1_path = os.path.join(base_dir, "dataset_ejemplo_1.csv")
+    if os.path.exists(df1_path):
+        df1 = pd.read_csv(df1_path)
+        classification1 = VariableClassifier.classify(df1)
+
+        var_cual = next((c for c in df1.columns if classification1.get(c, '').startswith('cualitativa')), None)
+        var_cuant = next((c for c in df1.columns if classification1.get(c, '').startswith('cuantitativa_continua')), None)
+        var_disc = next((c for c in df1.columns if classification1.get(c, '').startswith('cuantitativa_discreta')), None)
+
+        if var_cual:
+            add_sample_chart(doc,
+                f"Gráfico de barras de la variable '{var_cual}' (dataset académico)",
+                'bar', df1, var_cual, classification1[var_cual], var_cual,
+                f"Gráfico generado automáticamente por el sistema para la variable cualitativa {var_cual}.")
+        if var_cuant:
+            add_sample_chart(doc,
+                f"Histograma de frecuencias de la variable '{var_cuant}' (dataset académico)",
+                'histogram', df1, var_cuant, classification1[var_cuant], var_cuant,
+                f"Histograma generado aplicando la regla de Sturges para la variable cuantitativa continua {var_cuant}.")
+        if var_cual:
+            add_sample_chart(doc,
+                f"Gráfico de sectores de la variable '{var_cual}' (dataset académico)",
+                'pie', df1, var_cual, classification1[var_cual], var_cual,
+                f"Gráfico de sectores mostrando la distribución porcentual de {var_cual}.")
+        if var_disc:
+            add_sample_chart(doc,
+                f"Gráfico de barras con ojiva de la variable '{var_disc}' (dataset académico)",
+                'bar_ogive', df1, var_disc, classification1[var_disc], var_disc,
+                f"Gráfico de barras con ojiva de frecuencias acumuladas para la variable discreta {var_disc}.")
 
     add_body(doc,
         "El motor de exportación APA 7 produjo documentos .docx correctamente formateados. "
         "Se verificó que las tablas carecen de bordes verticales, los títulos están en cursiva "
         "numerada, las notas incluyen la palabra 'Nota.' en cursiva, y el formato general "
-        "respeta la tipografía Times New Roman 12 puntos con márgenes de 2.54 cm. En la "
-        "Figura 1 se muestra un ejemplo del reporte generado."
+        "respeta la tipografía Times New Roman 12 puntos con márgenes de 2.54 cm."
     )
 
     add_body(doc,
@@ -996,7 +1157,7 @@ def generate_report():
 
     # ===================== GUARDAR =====================
     base = os.path.dirname(os.path.abspath(__file__))
-    output_path = os.path.join(base, "Documentacion_APA7_Informe_Final.docx")
+    output_path = os.path.join(base, "Documentacion_APA7_Informe_Final_v2.docx")
     doc.save(output_path)
     print(f"Documento generado: {output_path}")
     return output_path
