@@ -12,17 +12,17 @@
                     <p class="welcome-subtitle">Cargue un archivo CSV o Excel para iniciar el análisis estadístico</p>
 
                     <form id="upload-form" action="{{ url_for('main.upload') }}" method="post" enctype="multipart/form-data">
-                        <div class="drop-zone" id="drop-zone">
+                        <label class="drop-zone" id="drop-zone" for="file-input">
                             <i class="fas fa-cloud-upload-alt fa-3x drop-icon"></i>
                             <p class="drop-text">Arrastra tu archivo aquí</p>
                             <p class="drop-subtext">o haz clic para examinar</p>
                             <input type="file" name="file" id="file-input" class="file-input"
-                                   accept=".csv,.xls,.xlsx" hidden>
+                                   accept=".csv,.xls,.xlsx">
                             <span class="drop-formats">Formatos: CSV, XLS, XLSX</span>
-                        </div>
-                        <button type="button" class="btn btn-primary btn-lg mt-3" id="browse-btn">
+                        </label>
+                        <label for="file-input" class="btn btn-primary btn-lg mt-3" id="browse-label">
                             <i class="fas fa-folder-open me-2"></i>Seleccionar archivo
-                        </button>
+                        </label>
                     </form>
 
                     <div id="upload-status" class="mt-4" style="display:none;">

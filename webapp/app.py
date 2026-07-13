@@ -13,7 +13,7 @@ except ImportError:
     from routes import main_bp
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY', os.urandom(32).hex())
+app.secret_key = os.environ.get('SECRET_KEY', 'analizador-encuestas-secret-key-2024')
 app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024
 app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(__file__), 'uploads')
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)

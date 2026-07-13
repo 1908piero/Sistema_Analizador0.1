@@ -2,12 +2,8 @@ $(function () {
     // File upload drag & drop
     var dropZone = $('#drop-zone');
     var fileInput = $('#file-input');
-    var browseBtn = $('#browse-btn');
 
     if (dropZone.length) {
-        dropZone.on('click', function () { fileInput.click(); });
-        browseBtn.on('click', function () { fileInput.click(); });
-
         dropZone.on('dragover', function (e) {
             e.preventDefault();
             e.stopPropagation();

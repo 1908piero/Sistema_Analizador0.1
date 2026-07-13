@@ -10,3 +10,4 @@ __pycache__/
 .DS_Store
 webapp/uploads/*
 !webapp/uploads/.gitkeep
+analizador-encuestas/
