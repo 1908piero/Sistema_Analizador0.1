@@ -18,6 +18,12 @@ app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024
 app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(__file__), 'uploads')
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
+from model.i18n import _, current_lang
+
+@app.context_processor
+def inject_i18n():
+    return dict(_=_, current_lang=current_lang)
+
 app.register_blueprint(main_bp)
 
 if __name__ == '__main__':

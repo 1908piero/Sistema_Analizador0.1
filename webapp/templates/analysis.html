@@ -3,26 +3,26 @@
 <div class="analysis-layout">
     <aside class="variable-sidebar">
         <div class="sidebar-section">
-            <h6><i class="fas fa-database me-2"></i>Dataset Info</h6>
+            <h6><i class="fas fa-database me-2"></i>{{ _('app.status_loaded') }}</h6>
             <div class="dataset-metrics">
                 <div class="metric">
                     <span class="metric-value">{{ n_rows }}</span>
-                    <span class="metric-label">Filas</span>
+                    <span class="metric-label">{{ _('dataset.rows') }}</span>
                 </div>
                 <div class="metric">
                     <span class="metric-value">{{ n_cols }}</span>
-                    <span class="metric-label">Columnas</span>
+                    <span class="metric-label">{{ _('dataset.columns') }}</span>
                 </div>
                 <div class="metric">
                     <span class="metric-value">{{ completeness }}%</span>
-                    <span class="metric-label">Completitud</span>
+                    <span class="metric-label">{{ _('dataset.status_complete') if completeness == 100 else _('dataset.status_empty') }}</span>
                 </div>
             </div>
             <small class="text-muted file-name"><i class="fas fa-file me-1"></i>{{ filename }}</small>
         </div>
         <hr class="sidebar-divider">
         <div class="sidebar-section">
-            <h6><i class="fas fa-list me-2"></i>Variables</h6>
+            <h6><i class="fas fa-list me-2"></i>{{ _('dataset.variables_title') }}</h6>
             <div class="variable-list" id="variable-list">
                 {% for col in columns %}
                 {% set tipo = classification.get(col, 'desconocido') %}
@@ -33,10 +33,10 @@
                     'cuantitativa_continua': 'badge-quant-cont',
                 } %}
                 {% set badge_text = {
-                    'cualitativa_nominal': 'Cual. Nominal',
-                    'cualitativa_ordinal': 'Cual. Ordinal',
-                    'cuantitativa_discreta': 'Cuan. Discreta',
-                    'cuantitativa_continua': 'Cuan. Continua',
+                    'cualitativa_nominal': _('dataset.var_type_nominal'),
+                    'cualitativa_ordinal': _('dataset.var_type_ordinal'),
+                    'cuantitativa_discreta': _('dataset.var_type_discrete'),
+                    'cuantitativa_continua': _('dataset.var_type_continuous'),
                 } %}
                 <button class="variable-item" data-var="{{ col }}">
                     <span class="var-name">{{ col }}</span>
@@ -47,11 +47,11 @@
         </div>
         <div class="sidebar-section mt-auto">
             <button class="btn btn-outline-primary w-100 mb-2" id="summary-btn">
-                <i class="fas fa-chart-pie me-2"></i>Resumen General
+                <i class="fas fa-chart-pie me-2"></i>{{ _('dataset.summary_btn') }}
             </button>
             <form action="{{ url_for('main.export_apa') }}" method="post" id="export-form">
                 <button type="submit" class="btn btn-primary w-100" id="export-btn">
-                    <i class="fas fa-file-word me-2"></i>Exportar APA 7
+                    <i class="fas fa-file-word me-2"></i>{{ _('dataset.export_btn') }}
                 </button>
             </form>
         </div>
@@ -59,8 +59,8 @@
     <div class="analysis-content" id="analysis-content">
         <div class="placeholder-content text-center">
             <i class="fas fa-hand-pointer fa-4x text-muted mb-3"></i>
-            <h4 class="text-muted">Seleccione una variable</h4>
-            <p class="text-muted">Haga clic en cualquier variable del panel izquierdo para ver su análisis detallado, o presione "Resumen General".</p>
+            <h4 class="text-muted">{{ _('dataset.select_var') }}</h4>
+            <p class="text-muted">{{ _('dataset.welcome_text2') }}</p>
         </div>
     </div>
 </div>
@@ -69,13 +69,13 @@
     <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title"><i class="fas fa-chart-pie me-2"></i>Resumen General del Dataset</h5>
+                <h5 class="modal-title"><i class="fas fa-chart-pie me-2"></i>{{ _('dataset.summary_title') }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body" id="summary-body">
                 <div class="text-center py-4">
                     <div class="spinner-border text-primary" role="status"></div>
-                    <p class="mt-2">Cargando resumen...</p>
+                    <p class="mt-2">{{ _('dataset.processing') }}</p>
                 </div>
             </div>
         </div>

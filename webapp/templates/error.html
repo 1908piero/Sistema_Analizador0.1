@@ -6,10 +6,10 @@
             <div class="card error-card">
                 <div class="card-body text-center p-5">
                     <i class="fas fa-exclamation-triangle fa-4x text-warning mb-3"></i>
-                    <h3 class="text-danger">Error</h3>
+                    <h3 class="text-danger">{{ _('error') }}</h3>
                     <p class="text-muted">{{ message }}</p>
                     <a href="{{ url_for('main.index') }}" class="btn btn-primary mt-3">
-                        <i class="fas fa-arrow-left me-2"></i>Volver al inicio
+                        <i class="fas fa-arrow-left me-2"></i>{{ _('nav.home') }}
                     </a>
                 </div>
             </div>

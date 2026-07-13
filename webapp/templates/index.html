@@ -8,28 +8,28 @@
                     <div class="welcome-icon">
                         <i class="fas fa-chart-bar"></i>
                     </div>
-                    <h2 class="welcome-title">Auto-Analizador de Encuestas</h2>
-                    <p class="welcome-subtitle">Cargue un archivo CSV o Excel para iniciar el análisis estadístico</p>
+                    <h2 class="welcome-title">{{ _('home.title') }}</h2>
+                    <p class="welcome-subtitle">{{ _('home.subtitle') }}</p>
 
                     <form id="upload-form" action="{{ url_for('main.upload') }}" method="post" enctype="multipart/form-data">
                         <label class="drop-zone" id="drop-zone" for="file-input">
                             <i class="fas fa-cloud-upload-alt fa-3x drop-icon"></i>
-                            <p class="drop-text">Arrastra tu archivo aquí</p>
-                            <p class="drop-subtext">o haz clic para examinar</p>
+                            <p class="drop-text">{{ _('home.drop_text') }}</p>
+                            <p class="drop-subtext">{{ _('home.drop_subtext') }}</p>
                             <input type="file" name="file" id="file-input" class="file-input"
                                    accept=".csv,.xls,.xlsx">
-                            <span class="drop-formats">Formatos: CSV, XLS, XLSX</span>
+                            <span class="drop-formats">{{ _('home.drop_formats') }}</span>
                         </label>
                         <label for="file-input" class="btn btn-primary btn-lg mt-3" id="browse-label">
-                            <i class="fas fa-folder-open me-2"></i>Seleccionar archivo
+                            <i class="fas fa-folder-open me-2"></i>{{ _('home.browse_btn') }}
                         </label>
                     </form>
 
                     <div id="upload-status" class="mt-4" style="display:none;">
                         <div class="spinner-border text-primary" role="status">
-                            <span class="visually-hidden">Cargando...</span>
+                            <span class="visually-hidden">{{ _('home.loading') }}</span>
                         </div>
-                        <p class="mt-2 text-muted">Cargando archivo...</p>
+                        <p class="mt-2 text-muted">{{ _('home.loading') }}</p>
                     </div>
                 </div>
             </div>
@@ -38,22 +38,22 @@
                 <div class="col-md-4">
                     <div class="card feature-card text-center p-3">
                         <i class="fas fa-filter fa-2x text-primary mb-2"></i>
-                        <h6>Clasificación Automática</h6>
-                        <small class="text-muted">Variables clasificadas por tipo</small>
+                        <h6>{{ _('nav.home_desc') }}</h6>
+                        <small class="text-muted">{{ _('dataset.var_type_nominal') }}, {{ _('dataset.var_type_ordinal') }}...</small>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="card feature-card text-center p-3">
                         <i class="fas fa-calculator fa-2x text-success mb-2"></i>
-                        <h6>Medidas Estadísticas</h6>
-                        <small class="text-muted">Tendencia, dispersión, forma</small>
+                        <h6>{{ _('dataset.central_tendency') }}</h6>
+                        <small class="text-muted">{{ _('measures.mean') }}, {{ _('measures.median') }}, {{ _('measures.mode') }}</small>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="card feature-card text-center p-3">
                         <i class="fas fa-file-word fa-2x text-info mb-2"></i>
-                        <h6>Exportar APA 7</h6>
-                        <small class="text-muted">Reporte profesional en Word</small>
+                        <h6>{{ _('dataset.export_btn') }}</h6>
+                        <small class="text-muted">{{ _('nav.export_hint') }}</small>
                     </div>
                 </div>
             </div>
