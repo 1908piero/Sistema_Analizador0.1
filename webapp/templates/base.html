@@ -9,8 +9,49 @@
     <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
 </head>
 <body>
+    <!-- Mobile top bar -->
+    <nav class="mobile-topbar">
+        <button class="hamburger-btn" id="menuToggle" aria-label="Menu">
+            <i class="fas fa-bars"></i>
+        </button>
+        <span class="mobile-title">UNAS</span>
+        <div class="mobile-lang">
+            <a href="{{ url_for('main.set_lang', lang='es') }}" class="lang-link {% if session.get('lang') in (None, 'es') %}active{% endif %}">ES</a>
+            <a href="{{ url_for('main.set_lang', lang='en') }}" class="lang-link {% if session.get('lang') == 'en' %}active{% endif %}">EN</a>
+            <a href="{{ url_for('main.set_lang', lang='pt') }}" class="lang-link {% if session.get('lang') == 'pt' %}active{% endif %}">PT</a>
+        </div>
+    </nav>
+
+    <!-- Mobile overlay menu -->
+    <div class="menu-overlay" id="menuOverlay"></div>
+    <nav class="mobile-menu" id="mobileMenu">
+        <div class="mobile-menu-header">
+            <div class="logo-circle" style="width:60px;height:60px;margin:0 auto 8px;">
+                <span class="logo-text" style="font-size:16px;">UNAS</span>
+            </div>
+            <h5>{{ _('app.full_title') }}</h5>
+            <small class="text-muted">{{ _('app.subtitle') }}</small>
+        </div>
+        <hr>
+        <a href="{{ url_for('main.index') }}" class="mobile-menu-item {% if request.endpoint == 'main.index' %}active{% endif %}">
+            <i class="fas fa-home"></i> {{ _('nav.home') }}
+        </a>
+        <a href="{{ url_for('main.analysis') }}" class="mobile-menu-item {% if request.endpoint == 'main.analysis' %}active{% endif %}">
+            <i class="fas fa-table"></i> {{ _('nav.dataset') }}
+        </a>
+        <a href="{{ url_for('main.sampling') }}" class="mobile-menu-item {% if request.endpoint == 'main.sampling' %}active{% endif %}">
+            <i class="fas fa-calculator"></i> {{ _('nav.sampling') }}
+        </a>
+        <a href="{{ url_for('main.credits') }}" class="mobile-menu-item {% if request.endpoint == 'main.credits' %}active{% endif %}">
+            <i class="fas fa-info-circle"></i> {{ _('nav.credits') }}
+        </a>
+        <hr>
+        <small class="text-muted" style="display:block;text-align:center;padding:8px;">{{ _('nav.export_hint') }}</small>
+    </nav>
+
     <div class="app-wrapper">
-        <aside class="sidebar">
+        <!-- Desktop sidebar (hidden on mobile) -->
+        <aside class="sidebar" id="desktopSidebar">
             <div class="sidebar-header">
                 <div class="logo-circle">
                     <span class="logo-text">UNAS</span>
@@ -42,12 +83,26 @@
                 <span class="sidebar-hint">{{ _('nav.export_hint') }}</span>
             </div>
         </aside>
-        <main class="main-content">
+        <main class="main-content" id="mainContent">
             {% block content %}{% endblock %}
         </main>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script>
+    $(function() {
+        var menuToggle = $('#menuToggle');
+        var mobileMenu = $('#mobileMenu');
+        var overlay = $('#menuOverlay');
+        function toggleMenu() {
+            mobileMenu.toggleClass('open');
+            overlay.toggleClass('show');
+        }
+        menuToggle.on('click', toggleMenu);
+        overlay.on('click', toggleMenu);
+        mobileMenu.find('a').on('click', toggleMenu);
+    });
+    </script>
 </body>
 </html>

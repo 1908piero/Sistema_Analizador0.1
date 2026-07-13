@@ -17,97 +17,253 @@ body {
     color: var(--text-primary);
     font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
     overflow: hidden;
+    margin: 0;
+    padding: 0;
 }
 
-/* Responsive: mobile sidebar collapse */
+/* ============ MOBILE TOP BAR ============ */
 @media (max-width: 768px) {
-    .app-wrapper {
-        flex-direction: column;
+    .mobile-topbar {
+        display: flex;
+    }
+    .menu-overlay {
+        display: block;
+    }
+    .mobile-menu {
+        display: block;
+    }
+}
+.mobile-topbar {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 48px;
+    background: var(--sidebar-bg);
+    border-bottom: 1px solid var(--card-border);
+    align-items: center;
+    padding: 0 12px;
+    z-index: 1040;
+}
+.hamburger-btn {
+    background: none;
+    border: none;
+    color: var(--text-primary);
+    font-size: 20px;
+    padding: 6px 10px;
+    cursor: pointer;
+}
+.mobile-title {
+    flex: 1;
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--text-primary);
+    padding-left: 8px;
+}
+.mobile-lang {
+    display: flex;
+    gap: 2px;
+}
+.mobile-lang .lang-link {
+    font-size: 10px;
+    padding: 4px 6px;
+    border-radius: 4px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-decoration: none;
+    border: 1px solid transparent;
+    transition: all 0.2s;
+}
+.mobile-lang .lang-link.active {
+    color: var(--accent);
+    border-color: var(--accent);
+    background: rgba(33, 150, 243, 0.1);
+}
+
+/* ============ MOBILE OVERLAY MENU ============ */
+.menu-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 1045;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+}
+.menu-overlay.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+.mobile-menu {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: -280px;
+    width: 280px;
+    height: 100%;
+    background: var(--sidebar-bg);
+    z-index: 1050;
+    overflow-y: auto;
+    transition: left 0.3s ease;
+    padding: 20px 16px;
+}
+.mobile-menu.open {
+    left: 0;
+}
+.mobile-menu-header {
+    text-align: center;
+    padding-bottom: 12px;
+}
+.mobile-menu-header h5 {
+    font-size: 15px;
+    margin: 0;
+    color: var(--text-primary);
+}
+.mobile-menu-header small {
+    font-size: 11px;
+}
+.mobile-menu hr {
+    border-color: var(--card-border);
+    margin: 12px 0;
+    opacity: 0.5;
+}
+.mobile-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.2s;
+    margin-bottom: 2px;
+}
+.mobile-menu-item:hover {
+    background: #162030;
+    color: var(--text-primary);
+}
+.mobile-menu-item.active {
+    background: #162030;
+    color: var(--accent);
+}
+.mobile-menu-item i {
+    width: 20px;
+    text-align: center;
+}
+
+/* ============ RESPONSIVE ============ */
+@media (max-width: 768px) {
+    .mobile-topbar {
+        display: flex;
+    }
+    .menu-overlay {
+        display: block;
     }
     .sidebar {
-        width: 100%;
-        min-width: unset;
-        flex-direction: row;
-        align-items: center;
-        padding: 8px 12px;
-        border-right: none;
-        border-bottom: 1px solid var(--card-border);
-        overflow-y: visible;
+        display: none !important;
     }
-    .sidebar-header {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 0;
-    }
-    .sidebar-header .logo-circle {
-        width: 36px;
-        height: 36px;
-        margin: 0;
-    }
-    .sidebar-header .logo-text {
-        font-size: 12px;
-    }
-    .sidebar-title {
-        font-size: 13px;
-        display: none;
-    }
-    .sidebar-subtitle {
-        display: none;
-    }
-    .sidebar-divider {
-        display: none;
-    }
-    .sidebar-nav {
-        display: flex;
-        flex: 1;
-        gap: 4px;
-        padding: 0 8px;
-    }
-    .nav-item {
-        font-size: 12px;
-        padding: 6px 8px;
-        gap: 4px;
-        white-space: nowrap;
-    }
-    .nav-item i {
-        font-size: 14px;
-    }
-    .sidebar-footer {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 0;
-        border-top: none;
-    }
-    .sidebar-hint {
-        display: none;
-    }
-    .lang-link {
-        font-size: 10px;
-        padding: 4px 6px;
+    .app-wrapper {
+        padding-top: 48px;
+        height: calc(100vh - 48px);
     }
     .main-content {
         flex: 1;
         overflow-y: auto;
+        padding: 0;
     }
     .welcome-title {
-        font-size: 20px;
+        font-size: 18px;
     }
     .welcome-subtitle {
-        font-size: 13px;
+        font-size: 12px;
     }
     .drop-zone {
-        padding: 20px 12px;
+        padding: 16px 10px;
     }
     .drop-zone .drop-icon {
-        font-size: 2rem;
+        font-size: 1.8rem;
     }
-    .feature-card h6 {
+    .drop-text {
         font-size: 13px;
     }
-    .feature-card small {
+    .drop-subtext {
         font-size: 11px;
+    }
+    .drop-formats {
+        font-size: 10px;
+    }
+    .feature-card {
+        padding: 12px 8px !important;
+    }
+    .feature-card h6 {
+        font-size: 12px;
+    }
+    .feature-card small {
+        font-size: 10px;
+    }
+    .feature-card i {
+        font-size: 1.3rem !important;
+    }
+
+    /* Analysis page mobile */
+    .analysis-layout {
+        flex-direction: column;
+    }
+    .variable-sidebar {
+        width: 100%;
+        min-width: unset;
+        max-height: 160px;
+        border-right: none;
+        border-bottom: 1px solid var(--card-border);
+        padding: 10px;
+    }
+    .analysis-content {
+        padding: 10px;
+    }
+    .measures-grid {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 6px;
+    }
+    .results-section {
+        padding: 10px;
+    }
+    .results-section h5 {
+        font-size: 12px;
+    }
+    .table-custom {
+        font-size: 10px;
+    }
+    .table-custom th,
+    .table-custom td {
+        padding: 3px 4px;
+    }
+    .chart-container h6 {
+        font-size: 10px;
+    }
+    .chart-container {
+        padding: 8px;
+    }
+    .metric-value {
+        font-size: 14px;
+    }
+    .metric-label {
+        font-size: 9px;
+    }
+    .var-name {
+        font-size: 11px;
+    }
+    .var-badge {
+        font-size: 8px;
+        padding: 1px 4px;
+    }
+    .variable-list {
+        max-height: 80px;
+    }
+    .container-fluid.p-4 {
+        padding: 12px !important;
     }
 }
 
