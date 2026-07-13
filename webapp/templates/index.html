@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container-fluid p-4">
+    <div class="row justify-content-center mt-5">
+        <div class="col-lg-8 col-xl-6">
+            <div class="card welcome-card">
+                <div class="card-body text-center p-5">
+                    <div class="welcome-icon">
+                        <i class="fas fa-chart-bar"></i>
+                    </div>
+                    <h2 class="welcome-title">Auto-Analizador de Encuestas</h2>
+                    <p class="welcome-subtitle">Cargue un archivo CSV o Excel para iniciar el análisis estadístico</p>
+
+                    <form id="upload-form" action="{{ url_for('main.upload') }}" method="post" enctype="multipart/form-data">
+                        <div class="drop-zone" id="drop-zone">
+                            <i class="fas fa-cloud-upload-alt fa-3x drop-icon"></i>
+                            <p class="drop-text">Arrastra tu archivo aquí</p>
+                            <p class="drop-subtext">o haz clic para examinar</p>
+                            <input type="file" name="file" id="file-input" class="file-input"
+                                   accept=".csv,.xls,.xlsx" hidden>
+                            <span class="drop-formats">Formatos: CSV, XLS, XLSX</span>
+                        </div>
+                        <button type="button" class="btn btn-primary btn-lg mt-3" id="browse-btn">
+                            <i class="fas fa-folder-open me-2"></i>Seleccionar archivo
+                        </button>
+                    </form>
+
+                    <div id="upload-status" class="mt-4" style="display:none;">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Cargando...</span>
+                        </div>
+                        <p class="mt-2 text-muted">Cargando archivo...</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mt-4 g-3">
+                <div class="col-md-4">
+                    <div class="card feature-card text-center p-3">
+                        <i class="fas fa-filter fa-2x text-primary mb-2"></i>
+                        <h6>Clasificación Automática</h6>
+                        <small class="text-muted">Variables clasificadas por tipo</small>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card feature-card text-center p-3">
+                        <i class="fas fa-calculator fa-2x text-success mb-2"></i>
+                        <h6>Medidas Estadísticas</h6>
+                        <small class="text-muted">Tendencia, dispersión, forma</small>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card feature-card text-center p-3">
+                        <i class="fas fa-file-word fa-2x text-info mb-2"></i>
+                        <h6>Exportar APA 7</h6>
+                        <small class="text-muted">Reporte profesional en Word</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

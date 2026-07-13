@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+*.pyo
+*.docx
+*.doc
+~$*
+*.jpeg
+*.jpg
+.env
+.DS_Store
+webapp/uploads/*
+!webapp/uploads/.gitkeep

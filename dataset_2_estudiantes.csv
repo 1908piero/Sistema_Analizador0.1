@@ -1,0 +1,31 @@
+ID,Nombre,Semestre,Carrera,Promedio,Edad,Horas_Estudio_Metodo_Pago
+E001,Ana Lopez,3,Ingenieria de Sistemas,16.5,21,8,Presencial
+E002,Carlos Ruiz,5,Informatica,14.2,23,5,Presencial
+E003,Maria Torres,2,Administracion,12.8,19,3,Online
+E004,Pedro Silva,4,Ingenieria Civil,17.1,22,10,Presencial
+E005,Lucia Vega,6,Informatica,15.6,24,7,Presencial
+E006,Jorge Diaz,1,Ingenieria de Sistemas,11.3,18,2,Online
+E007,Sofia Cruz,3,Administracion,13.5,20,4,Presencial
+E008,Dante Reyes,8,Ingenieria Civil,18.2,26,12,Presencial
+E009,Clara Moya,2,Informatica,14.8,19,6,Online
+E010,Hugo Paz,5,Ingenieria de Sistemas,16.0,23,9,Presencial
+E011,Elena Gil,4,Administracion,12.1,21,3,Online
+E012,Ivan Soto,7,Informatica,15.2,25,8,Presencial
+E013,Nora Luna,1,Ingenieria Civil,10.5,18,2,Online
+E014,Raul Pozo,6,Ingenieria de Sistemas,17.8,24,11,Presencial
+E015,Gina Rios,3,Administracion,13.9,20,5,Presencial
+E016,Tomas Leon,4,Informatica,14.5,22,6,Online
+E017,Paula Mesa,5,Ingenieria Civil,16.7,23,9,Presencial
+E018,Oscar Flor,2,Ingenieria de Sistemas,12.4,19,4,Online
+E019,Lara Sol,8,Administracion,15.8,26,7,Presencial
+E020,Mauro Gil,1,Informatica,9.8,18,1,Online
+E021,Alba Mar,3,Ingenieria de Sistemas,14.1,21,6,Presencial
+E022,Sergio Paz,6,Administracion,12.9,24,4,Presencial
+E023,Ida Calle,4,Informatica,16.3,22,10,Presencial
+E024,Felix Toro,7,Ingenieria Civil,17.5,25,11,Presencial
+E025,Ruth Miel,2,Ingenieria de Sistemas,13.0,19,5,Online
+E026,Leon Puma,5,Administracion,11.5,23,3,Online
+E027,Vera Sosa,1,Informatica,14.0,18,6,Presencial
+E028,Yago Cruz,8,Ingenieria de Sistemas,18.0,26,13,Presencial
+E029,Sara Solis,3,Administracion,12.6,20,4,Online
+E030,Bruno Roca,6,Informatica,15.3,24,8,Presencial

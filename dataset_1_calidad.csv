@@ -1,0 +1,21 @@
+Producto,Categoria,Precio,Calificacion,Unidades_Vendidas,Satisfaccion
+Laptop Gamer,Electronica,4500,4.5,120,Alta
+Teclado Mecanico,Electronica,250,4.2,300,Alta
+Mouse Inalambrico,Electronica,80,3.8,450,Media
+Monitor 27p,Electronica,1200,4.7,80,Muy Alta
+Audifonos Bluetooth,Electronica,150,4.0,250,Alta
+Camiseta Deportiva,Ropa,45,3.5,600,Media
+Zapatillas Running,Ropa,280,4.3,200,Alta
+Chaqueta Impermeable,Ropa,350,4.1,150,Alta
+Pantalon Jean,Ropa,90,3.6,380,Media
+Gorra Deportiva,Ropa,25,3.2,500,Baja
+Mesa Escritorio,Hogar,550,4.4,90,Muy Alta
+Silla Ergonómica,Hogar,800,4.6,130,Alta
+Lampara LED,Hogar,60,3.9,280,Media
+Estante Madera,Hogar,200,4.0,110,Alta
+Cocina Eléctrica,Hogar,950,4.2,65,Muy Alta
+Jabon Artesanal,Belleza,15,3.7,700,Media
+Shampoo Natural,Belleza,35,4.0,420,Alta
+Crema Hidratante,Belleza,45,4.1,350,Alta
+Perfume Importado,Belleza,280,4.5,180,Muy Alta
+Esmalte de Uñas,Belleza,12,3.4,550,Baja

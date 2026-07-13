@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="analysis-layout">
+    <aside class="variable-sidebar">
+        <div class="sidebar-section">
+            <h6><i class="fas fa-database me-2"></i>Dataset Info</h6>
+            <div class="dataset-metrics">
+                <div class="metric">
+                    <span class="metric-value">{{ n_rows }}</span>
+                    <span class="metric-label">Filas</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-value">{{ n_cols }}</span>
+                    <span class="metric-label">Columnas</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-value">{{ completeness }}%</span>
+                    <span class="metric-label">Completitud</span>
+                </div>
+            </div>
+            <small class="text-muted file-name"><i class="fas fa-file me-1"></i>{{ filename }}</small>
+        </div>
+        <hr class="sidebar-divider">
+        <div class="sidebar-section">
+            <h6><i class="fas fa-list me-2"></i>Variables</h6>
+            <div class="variable-list" id="variable-list">
+                {% for col in columns %}
+                {% set tipo = classification.get(col, 'desconocido') %}
+                {% set badge_class = {
+                    'cualitativa_nominal': 'badge-qual-nom',
+                    'cualitativa_ordinal': 'badge-qual-ord',
+                    'cuantitativa_discreta': 'badge-quant-disc',
+                    'cuantitativa_continua': 'badge-quant-cont',
+                } %}
+                {% set badge_text = {
+                    'cualitativa_nominal': 'Cual. Nominal',
+                    'cualitativa_ordinal': 'Cual. Ordinal',
+                    'cuantitativa_discreta': 'Cuan. Discreta',
+                    'cuantitativa_continua': 'Cuan. Continua',
+                } %}
+                <button class="variable-item" data-var="{{ col }}">
+                    <span class="var-name">{{ col }}</span>
+                    <span class="var-badge {{ badge_class.get(tipo, '') }}">{{ badge_text.get(tipo, tipo) }}</span>
+                </button>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="sidebar-section mt-auto">
+            <button class="btn btn-outline-primary w-100 mb-2" id="summary-btn">
+                <i class="fas fa-chart-pie me-2"></i>Resumen General
+            </button>
+            <form action="{{ url_for('main.export_apa') }}" method="post" id="export-form">
+                <button type="submit" class="btn btn-primary w-100" id="export-btn">
+                    <i class="fas fa-file-word me-2"></i>Exportar APA 7
+                </button>
+            </form>
+        </div>
+    </aside>
+    <div class="analysis-content" id="analysis-content">
+        <div class="placeholder-content text-center">
+            <i class="fas fa-hand-pointer fa-4x text-muted mb-3"></i>
+            <h4 class="text-muted">Seleccione una variable</h4>
+            <p class="text-muted">Haga clic en cualquier variable del panel izquierdo para ver su análisis detallado, o presione "Resumen General".</p>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="summary-modal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-chart-pie me-2"></i>Resumen General del Dataset</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="summary-body">
+                <div class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="mt-2">Cargando resumen...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
