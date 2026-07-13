@@ -198,7 +198,7 @@ def generate_report():
 
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    run = p.add_run("Facultad de Ingeniería en Informática y Sistemas")
+    run = p.add_run("Facultad de Ingeniería Informática y Sistemas")
     run.font.name = APA_FONT
     run.font.size = Pt(13)
     p.paragraph_format.space_after = Pt(4)
@@ -260,7 +260,7 @@ def generate_report():
 
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    run = p.add_run("Ing. Wilmer J. Bermudez Pino")
+    run = p.add_run("Ing. Bermudez Pino, Wilmer")
     run.font.name = APA_FONT
     run.font.size = APA_SIZE
 
@@ -921,7 +921,7 @@ def generate_report():
          "(921 780 290) y el campo para ingresar el código de operación."),
         ("Figura B5", "Sección de créditos institucionales",
          "Muestra la información de la Universidad Nacional Agraria de la Selva, la "
-         "Facultad de Ingeniería en Informática y Sistemas, el docente y los desarrolladores."),
+          "Facultad de Ingeniería Informática y Sistemas, el docente y los desarrolladores."),
     ]
 
     for fig_id, fig_title, fig_desc in screens:
@@ -996,7 +996,7 @@ def generate_report():
 
     # ===================== GUARDAR =====================
     base = os.path.dirname(os.path.abspath(__file__))
-    output_path = os.path.join(base, "Documentacion_Analizador_Encuestas_APA7_v2.docx")
+    output_path = os.path.join(base, "Documentacion_APA7_Informe_Final.docx")
     doc.save(output_path)
     print(f"Documento generado: {output_path}")
     return output_path
