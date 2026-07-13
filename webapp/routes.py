@@ -206,6 +206,10 @@ def export_apa():
                      download_name='Reporte_Estadistico_APA7.docx')
 
 
+@main_bp.route('/credits')
+def credits():
+    return render_template('credits.html', lang=current_lang())
+
 @main_bp.route('/lang/<lang>')
 def set_lang(lang):
     if lang in ('es', 'en', 'pt'):

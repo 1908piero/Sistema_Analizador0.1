@@ -29,6 +29,9 @@
                 <a href="{{ url_for('main.sampling') }}" class="nav-item {% if request.endpoint == 'main.sampling' %}active{% endif %}">
                     <i class="fas fa-calculator"></i> {{ _('nav.sampling') }}
                 </a>
+                <a href="{{ url_for('main.credits') }}" class="nav-item {% if request.endpoint == 'main.credits' %}active{% endif %}">
+                    <i class="fas fa-info-circle"></i> {{ _('nav.credits') }}
+                </a>
             </nav>
             <div class="sidebar-footer">
                 <div class="lang-switcher">
