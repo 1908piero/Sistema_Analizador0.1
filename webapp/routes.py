@@ -8,6 +8,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, sessio
 from model.statistics import VariableClassifier, FrequencyAnalyzer, MeasuresCalculator, DatasetSummary
 from model.charts import ChartGenerator
 from model.sampling import calculate_sample_size
+from model.anova import ANOVAOneWay, ANOVATwoWay
 from model.i18n import _, set_language, current_lang
 from export.docx_exporter import APA7Exporter
 
@@ -157,6 +158,225 @@ def sampling():
             result = {'error': f'Error inesperado: {str(e)}'}
 
     return render_template('sampling.html', lang=current_lang(), result=result)
+
+
+def _parse_grupos(form, k):
+    grupos = []
+    for i in range(k):
+        raw = form.get(f'grupo_{i}', '')
+        valores = [float(x.strip()) for x in raw.split(',') if x.strip()]
+        if valores:
+            grupos.append(valores)
+    return grupos
+
+
+@main_bp.route('/anova1', methods=['GET', 'POST'])
+def anova1():
+    k = None
+    n = None
+    alpha = None
+    grupos = None
+    grupos_serialized = None
+    result = None
+    if request.method == 'POST':
+        try:
+            k = int(request.form.get('k', 3))
+            n = int(request.form.get('n', 5))
+            alpha = float(request.form.get('alpha', 0.05))
+            grupos = _parse_grupos(request.form, k)
+            if len(grupos) < 2:
+                return render_template('anova1.html', lang=current_lang(), error="Ingrese al menos 2 grupos con datos.",
+                                       k=k, n=n, alpha=alpha, grupos=grupos, enumerate=enumerate, int=int)
+            anova = ANOVAOneWay(grupos, alpha)
+            result = anova.compute()
+            import json as _json
+            grupos_serialized = _json.dumps(grupos)
+        except Exception as e:
+            return render_template('anova1.html', lang=current_lang(), error=str(e),
+                                   k=k, n=n, alpha=alpha, grupos=grupos, enumerate=enumerate, int=int)
+    return render_template('anova1.html', lang=current_lang(), result=result,
+                           k=k, n=n, alpha=alpha, grupos=grupos,
+                           grupos_serialized=grupos_serialized,
+                           enumerate=enumerate, int=int)
+
+
+@main_bp.route('/anova1/tukey')
+def anova1_tukey():
+    try:
+        import json as _json
+        k = int(request.args.get('k', 3))
+        alpha = float(request.args.get('alpha', 0.05))
+        grupos_raw = request.args.get('grupos', '[]')
+        grupos = _json.loads(grupos_raw)
+        anova = ANOVAOneWay(grupos, alpha)
+        anova.compute()
+        comparisons = anova.tukey_hsd()
+        return render_template('tukey.html', lang=current_lang(), comparisons=comparisons, int=int)
+    except Exception as e:
+        return str(e)
+
+
+@main_bp.route('/anova1/pdf')
+def anova1_pdf():
+    try:
+        import json as _json
+        from reportlab.lib.pagesizes import A4
+        from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+        from reportlab.lib import colors
+        from reportlab.lib.styles import getSampleStyleSheet
+        k = int(request.args.get('k', 3))
+        alpha = float(request.args.get('alpha', 0.05))
+        grupos_raw = request.args.get('grupos', '[]')
+        grupos = _json.loads(grupos_raw)
+        anova = ANOVAOneWay(grupos, alpha)
+        result = anova.compute()
+
+        buf = io.BytesIO()
+        doc = SimpleDocTemplate(buf, pagesize=A4)
+        styles = getSampleStyleSheet()
+        elements = []
+
+        elements.append(Paragraph("Estadística ANOVA RL", styles['Title']))
+        elements.append(Paragraph("Análisis de Varianza Un Factor", styles['Heading2']))
+        elements.append(Spacer(1, 12))
+
+        anova_data = [[r['FV'], f"{r['SC']:.4f}", str(int(r['GL'])) if r['GL'] else '-',
+                       f"{r['MC']:.4f}" if r['MC'] else '-',
+                       f"{r['F']:.4f}" if r['F'] else '-',
+                       f"{r['p-value']:.4f}" if r['p-value'] else '-']
+                      for _, r in result['table'].iterrows()]
+        anova_data.insert(0, ['FV', 'SC', 'GL', 'MC', 'F', 'p-value'])
+
+        t = Table(anova_data)
+        t.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#6366f1')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+            ('FONTSIZE', (0, 0), (-1, -1), 10),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.lightgrey]),
+        ]))
+        elements.append(t)
+        elements.append(Spacer(1, 12))
+        elements.append(Paragraph(result['conclusion'], styles['Normal']))
+        elements.append(Spacer(1, 24))
+        elements.append(Paragraph("Gracias por utilizar la aplicación. Cualquier sugerencia, por favor comentarla.", styles['Normal']))
+
+        doc.build(elements)
+        buf.seek(0)
+        return send_file(buf, as_attachment=True, download_name='ANOVA_UnFactor.pdf')
+    except Exception as e:
+        return str(e)
+
+
+@main_bp.route('/anova2', methods=['GET', 'POST'])
+def anova2():
+    a = None
+    b = None
+    n = None
+    alpha = None
+    celdas = None
+    datos_serialized = None
+    result = None
+    action = None
+    if request.method == 'POST':
+        try:
+            a = int(request.form.get('a', 2))
+            b = int(request.form.get('b', 2))
+            n = int(request.form.get('n', 3))
+            alpha = float(request.form.get('alpha', 0.05))
+            action = request.form.get('action', '')
+
+            if action == 'generate':
+                celdas = []
+                for i in range(a):
+                    for j in range(b):
+                        key = f'celda_{i}_{j}'
+                        existing = request.form.get(key, '')
+                        celdas.append({
+                            'i': i, 'j': j,
+                            'label': f'F1-{i+1} × F2-{j+1}',
+                            'valor': existing,
+                        })
+                return render_template('anova2.html', lang=current_lang(),
+                                       a=a, b=b, n=n, alpha=alpha, celdas=celdas, int=int)
+
+            rows = []
+            for i in range(a):
+                for j in range(b):
+                    raw = request.form.get(f'celda_{i}_{j}', '')
+                    valores = [float(x.strip()) for x in raw.split(',') if x.strip()]
+                    for v in valores:
+                        rows.append({'Factor1': f'F1-{i+1}', 'Factor2': f'F2-{j+1}', 'Valor': v})
+            df = pd.DataFrame(rows)
+            if len(df) < a * b:
+                return render_template('anova2.html', lang=current_lang(),
+                                       error="Ingrese datos en todas las casillas.",
+                                       a=a, b=b, n=n, alpha=alpha, int=int)
+            anova = ANOVATwoWay(df, alpha)
+            result = anova.compute()
+            import json as _json
+            datos_serialized = _json.dumps(rows)
+        except Exception as e:
+            return render_template('anova2.html', lang=current_lang(), error=str(e),
+                                   a=a, b=b, n=n, alpha=alpha, int=int)
+    return render_template('anova2.html', lang=current_lang(), result=result,
+                           a=a, b=b, n=n, alpha=alpha, celdas=celdas,
+                           datos_serialized=datos_serialized, int=int)
+
+
+@main_bp.route('/anova2/pdf')
+def anova2_pdf():
+    try:
+        import json as _json
+        from reportlab.lib.pagesizes import A4
+        from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+        from reportlab.lib import colors
+        from reportlab.lib.styles import getSampleStyleSheet
+        datos_raw = request.args.get('datos', '[]')
+        alpha = float(request.args.get('alpha', 0.05))
+        rows = _json.loads(datos_raw)
+        df = pd.DataFrame(rows)
+        anova = ANOVATwoWay(df, alpha)
+        result = anova.compute()
+
+        buf = io.BytesIO()
+        doc = SimpleDocTemplate(buf, pagesize=A4)
+        styles = getSampleStyleSheet()
+        elements = []
+
+        elements.append(Paragraph("Estadística ANOVA RL", styles['Title']))
+        elements.append(Paragraph("Análisis de Varianza Dos Factores", styles['Heading2']))
+        elements.append(Spacer(1, 12))
+
+        anova_data = [[r['FV'], f"{r['SC']:.4f}", str(int(r['GL'])) if r['GL'] else '-',
+                       f"{r['MC']:.4f}" if r['MC'] else '-',
+                       f"{r['F']:.4f}" if r['F'] else '-',
+                       f"{r['p-value']:.4f}" if r['p-value'] else '-']
+                      for _, r in result['table'].iterrows()]
+        anova_data.insert(0, ['FV', 'SC', 'GL', 'MC', 'F', 'p-value'])
+
+        t = Table(anova_data)
+        t.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#6366f1')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+            ('FONTSIZE', (0, 0), (-1, -1), 10),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.lightgrey]),
+        ]))
+        elements.append(t)
+        elements.append(Spacer(1, 12))
+        for key, conclusion in result['conclusions'].items():
+            elements.append(Paragraph(conclusion, styles['Normal']))
+        elements.append(Spacer(1, 24))
+        elements.append(Paragraph("Gracias por utilizar la aplicación. Cualquier sugerencia, por favor comentarla.", styles['Normal']))
+
+        doc.build(elements)
+        buf.seek(0)
+        return send_file(buf, as_attachment=True, download_name='ANOVA_DosFactores.pdf')
+    except Exception as e:
+        return str(e)
 
 
 @main_bp.route('/export_apa', methods=['POST'])
