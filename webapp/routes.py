@@ -89,7 +89,9 @@ def api_session_data():
 @main_bp.route('/analysis')
 def analysis():
     if 'df_json' not in session:
-        return redirect(url_for('main.index'))
+        return render_template('analysis.html',
+                               lang=current_lang(),
+                               no_data=True)
 
     df = pd.read_json(io.StringIO(session['df_json']), orient='split')
     classification = session['classification']

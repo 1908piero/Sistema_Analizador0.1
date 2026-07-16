@@ -3,6 +3,20 @@
 <h6 class="top-bar-title">Procesar Dataset</h6>
 {% endblock %}
 {% block content %}
+{% if no_data %}
+<div class="container-fluid p-4">
+    <div class="row justify-content-center mt-5">
+        <div class="col-lg-6 text-center">
+            <i class="fas fa-database fa-4x text-muted mb-3"></i>
+            <h4 class="text-muted" style="color: var(--text-secondary) !important; font-weight: 600;">Por favor, cargue un archivo CSV o Excel primero</h4>
+            <p class="text-muted" style="margin-top: 8px;">Diríjase a la sección Inicio para subir un dataset.</p>
+            <a href="{{ url_for('main.index') }}" class="btn btn-primary mt-3">
+                <i class="fas fa-arrow-left me-2"></i>Ir a Inicio
+            </a>
+        </div>
+    </div>
+</div>
+{% else %}
 <div class="analysis-layout">
     <aside class="variable-sidebar">
         <div class="sidebar-section">
@@ -69,6 +83,7 @@
 
 {% if session.pop('upload_ok', None) %}
 <div id="upload-toast-trigger" data-msg="Dataset cargado exitosamente: {{ filename }}" style="display:none;"></div>
+{% endif %}
 {% endif %}
 
 <div class="modal fade" id="summary-modal" tabindex="-1">

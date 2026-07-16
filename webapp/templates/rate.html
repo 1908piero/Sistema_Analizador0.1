@@ -30,6 +30,7 @@
                 <button class="btn btn-primary w-100" id="rate-submit">
                     <i class="fas fa-paper-plane me-2"></i>Enviar Comentario
                 </button>
+                <div id="rate-confirm" class="rate-confirm-message">Reseña guardada con éxito</div>
             </div>
 
             <div class="review-wall" id="review-wall">
@@ -48,6 +49,7 @@
     var comment = document.getElementById('rate-comment');
     var submitBtn = document.getElementById('rate-submit');
     var reviewList = document.getElementById('review-list');
+    var confirmMsg = document.getElementById('rate-confirm');
     var labels = ['', 'Malo', 'Regular', 'Bueno', 'Muy bueno', 'Excelente'];
     var STORAGE_KEY = 'app_reviews';
 
@@ -155,7 +157,9 @@
         updateStars(0);
         comment.value = '';
         feedback.textContent = '';
-        showToast('Gracias por tu opinión, hemos guardado tu comentario');
+        showToast('Reseña guardada con éxito', 'success');
+        confirmMsg.classList.add('show');
+        setTimeout(function() { confirmMsg.classList.remove('show'); }, 3000);
         renderReviews();
     });
 
