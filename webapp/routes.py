@@ -16,16 +16,42 @@ main_bp = Blueprint('main', __name__)
 
 @main_bp.route('/')
 def index():
-    return render_template('index.html', lang=current_lang())
+    analysis_data = {}
+    if 'df_json' in session:
+        df = pd.read_json(io.StringIO(session['df_json']), orient='split')
+        classification = session['classification']
+        filename = session.get('filename', 'Dataset')
+        n_rows = session.get('n_rows', len(df))
+        n_cols = session.get('n_cols', len(df.columns))
+        has_empty = bool(df.isna().any().any())
+        completeness = 100 - round(df.isna().sum().sum() / (n_rows * n_cols) * 100, 1)
+        analysis_data = {
+            'dataset_loaded': True,
+            'filename': filename,
+            'n_rows': n_rows,
+            'n_cols': n_cols,
+            'has_empty': has_empty,
+            'completeness': completeness,
+            'columns': list(df.columns),
+            'classification': classification
+        }
+    upload_ok = session.pop('upload_ok', None)
+    upload_error = session.pop('upload_error', None)
+    return render_template('base.html', lang=current_lang(),
+                           upload_ok=upload_ok,
+                           upload_error=upload_error,
+                           **analysis_data)
 
 @main_bp.route('/upload', methods=['POST'])
 def upload():
     if 'file' not in request.files:
-        return render_template('error.html', message='No se envió ningún archivo.')
+        session['upload_error'] = 'No se envió ningún archivo.'
+        return redirect(url_for('main.index'))
 
     file = request.files['file']
     if file.filename == '':
-        return render_template('error.html', message='Nombre de archivo vacío.')
+        session['upload_error'] = 'Nombre de archivo vacío.'
+        return redirect(url_for('main.index'))
 
     ext = os.path.splitext(file.filename)[1].lower()
     try:
@@ -34,12 +60,15 @@ def upload():
         elif ext in ('.xls', '.xlsx'):
             df = pd.read_excel(file, engine='openpyxl')
         else:
-            return render_template('error.html', message='Formato no soportado. Use CSV o Excel.')
+            session['upload_error'] = 'Formato no soportado. Use CSV o Excel.'
+            return redirect(url_for('main.index'))
     except Exception as e:
-        return render_template('error.html', message=f'Error al leer archivo: {str(e)}')
+        session['upload_error'] = f'Error al leer archivo: {str(e)}'
+        return redirect(url_for('main.index'))
 
     if df.empty:
-        return render_template('error.html', message='El archivo está vacío.')
+        session['upload_error'] = 'El archivo está vacío.'
+        return redirect(url_for('main.index'))
 
     df.columns = df.columns.str.strip().str.replace(r'\s+', '_', regex=True)
     for col in df.select_dtypes(include=['object']).columns:
@@ -52,32 +81,38 @@ def upload():
     session['n_cols'] = len(df.columns)
     session['upload_ok'] = True
 
-    return redirect(url_for('main.analysis'))
+    return redirect(url_for('main.index'))
 
 
-@main_bp.route('/analysis')
-def analysis():
+@main_bp.route('/api/session_data')
+def api_session_data():
     if 'df_json' not in session:
-        return redirect(url_for('main.index'))
-
+        return jsonify({'loaded': False})
     df = pd.read_json(io.StringIO(session['df_json']), orient='split')
     classification = session['classification']
     filename = session.get('filename', 'Dataset')
     n_rows = session.get('n_rows', len(df))
     n_cols = session.get('n_cols', len(df.columns))
-
     has_empty = bool(df.isna().any().any())
     completeness = 100 - round(df.isna().sum().sum() / (n_rows * n_cols) * 100, 1)
+    upload_ok = session.pop('upload_ok', None)
+    return jsonify({
+        'loaded': True,
+        'filename': filename,
+        'n_rows': n_rows,
+        'n_cols': n_cols,
+        'has_empty': has_empty,
+        'completeness': completeness,
+        'columns': list(df.columns),
+        'classification': classification,
+        'upload_ok': bool(upload_ok)
+    })
 
-    return render_template('analysis.html',
-                           lang=current_lang(),
-                           filename=filename,
-                           n_rows=n_rows,
-                           n_cols=n_cols,
-                           has_empty=has_empty,
-                           completeness=completeness,
-                           columns=list(df.columns),
-                           classification=classification)
+@main_bp.route('/analysis')
+def analysis():
+    if 'df_json' not in session:
+        return redirect(url_for('main.index'))
+    return redirect(url_for('main.index'))
 
 
 @main_bp.route('/api/analyze/<var_name>')
@@ -142,48 +177,45 @@ def api_summary():
     })
 
 
-@main_bp.route('/sampling', methods=['GET', 'POST'])
+@main_bp.route('/sampling')
 def sampling():
-    result = None
-    if request.method == 'POST':
-        try:
-            confidence = int(request.form.get('confidence', 95))
-            p = float(request.form.get('p', 0.5))
-            e = float(request.form.get('e', 0.05))
-            N_str = request.form.get('N', '').strip()
-            N = int(N_str) if N_str else None
-            result = calculate_sample_size(confidence, p, e, N)
-        except ValueError as e:
-            result = {'error': str(e)}
-        except Exception as e:
-            result = {'error': f'Error inesperado: {str(e)}'}
+    return redirect(url_for('main.index'))
 
-    return render_template('sampling.html', lang=current_lang(), result=result)
+@main_bp.route('/api/sampling', methods=['POST'])
+def api_sampling():
+    try:
+        confidence = int(request.form.get('confidence', 95))
+        p = float(request.form.get('p', 0.5))
+        e = float(request.form.get('e', 0.05))
+        N_str = request.form.get('N', '').strip()
+        N = int(N_str) if N_str else None
+        result = calculate_sample_size(confidence, p, e, N)
+        return jsonify(result)
+    except ValueError as e:
+        return jsonify({'error': str(e)})
+    except Exception as e:
+        return jsonify({'error': f'Error inesperado: {str(e)}'})
 
 
 @main_bp.route('/anova1')
 def anova1():
-    return redirect(url_for('main.analysis'))
-
+    return redirect(url_for('main.index'))
 
 @main_bp.route('/anova1/tukey')
 def anova1_tukey():
-    return redirect(url_for('main.analysis'))
-
+    return redirect(url_for('main.index'))
 
 @main_bp.route('/anova1/pdf')
 def anova1_pdf():
-    return redirect(url_for('main.analysis'))
-
+    return redirect(url_for('main.index'))
 
 @main_bp.route('/anova2')
 def anova2():
-    return redirect(url_for('main.analysis'))
-
+    return redirect(url_for('main.index'))
 
 @main_bp.route('/anova2/pdf')
 def anova2_pdf():
-    return redirect(url_for('main.analysis'))
+    return redirect(url_for('main.index'))
 
 
 FEEDBACK_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'analizador-encuestas')
@@ -291,19 +323,19 @@ def api_reclassify():
 
 @main_bp.route('/about')
 def about():
-    return render_template('about.html', lang=current_lang())
+    return redirect(url_for('main.index'))
 
 @main_bp.route('/privacy')
 def privacy():
-    return render_template('privacy.html', lang=current_lang())
+    return redirect(url_for('main.index'))
 
 @main_bp.route('/rate')
 def rate():
-    return render_template('rate.html', lang=current_lang())
+    return redirect(url_for('main.index'))
 
 @main_bp.route('/credits')
 def credits():
-    return redirect(url_for('main.about'))
+    return redirect(url_for('main.index'))
 
 @main_bp.route('/lang/<lang>')
 def set_lang(lang):
