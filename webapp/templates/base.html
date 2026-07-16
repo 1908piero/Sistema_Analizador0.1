@@ -14,23 +14,18 @@
         <button class="hamburger-btn" id="menuToggle" aria-label="Menu">
             <i class="fas fa-bars"></i>
         </button>
-        <span class="mobile-title">UNAS</span>
-        <div class="mobile-lang">
-            <a href="{{ url_for('main.set_lang', lang='es') }}" class="lang-link {% if session.get('lang') in (None, 'es') %}active{% endif %}">ES</a>
-            <a href="{{ url_for('main.set_lang', lang='en') }}" class="lang-link {% if session.get('lang') == 'en' %}active{% endif %}">EN</a>
-            <a href="{{ url_for('main.set_lang', lang='pt') }}" class="lang-link {% if session.get('lang') == 'pt' %}active{% endif %}">PT</a>
-        </div>
+        <span class="mobile-title">Auto-Analizador</span>
     </nav>
 
     <!-- Mobile overlay menu -->
     <div class="menu-overlay" id="menuOverlay"></div>
     <nav class="mobile-menu" id="mobileMenu">
         <div class="mobile-menu-header">
-            <div class="logo-circle" style="width:60px;height:60px;margin:0 auto 8px;">
-                <span class="logo-text" style="font-size:16px;">UNAS</span>
+            <div class="logo-circle" style="width:60px;height:60px;margin:0 auto 8px;overflow:hidden;">
+                <img src="{{ url_for('static', filename='escudo_unas.png') }}" alt="UNAS" style="width:100%;height:100%;object-fit:contain;" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+                <span class="logo-text" style="font-size:16px;display:none;">UNAS</span>
             </div>
             <h5>{{ _('app.full_title') }}</h5>
-            <small class="text-muted">{{ _('app.subtitle') }}</small>
         </div>
         <hr>
         <a href="{{ url_for('main.index') }}" class="mobile-menu-item {% if request.endpoint == 'main.index' %}active{% endif %}">
@@ -53,11 +48,11 @@
         <!-- Desktop sidebar (hidden on mobile) -->
         <aside class="sidebar" id="desktopSidebar">
             <div class="sidebar-header">
-                <div class="logo-circle">
-                    <span class="logo-text">UNAS</span>
+                <div class="logo-circle" style="overflow:hidden;">
+                    <img src="{{ url_for('static', filename='escudo_unas.png') }}" alt="UNAS" style="width:100%;height:100%;object-fit:contain;" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+                    <span class="logo-text" style="display:none;">UNAS</span>
                 </div>
                 <h5 class="sidebar-title">{{ _('app.full_title') }}</h5>
-                <span class="sidebar-subtitle">{{ _('app.subtitle') }}</span>
             </div>
             <hr class="sidebar-divider">
             <nav class="sidebar-nav">
@@ -75,11 +70,6 @@
                 </a>
             </nav>
             <div class="sidebar-footer">
-                <div class="lang-switcher">
-                    <a href="{{ url_for('main.set_lang', lang='es') }}" class="lang-link {% if session.get('lang') in (None, 'es') %}active{% endif %}">ES</a>
-                    <a href="{{ url_for('main.set_lang', lang='en') }}" class="lang-link {% if session.get('lang') == 'en' %}active{% endif %}">EN</a>
-                    <a href="{{ url_for('main.set_lang', lang='pt') }}" class="lang-link {% if session.get('lang') == 'pt' %}active{% endif %}">PT</a>
-                </div>
                 <span class="sidebar-hint">{{ _('nav.export_hint') }}</span>
             </div>
         </aside>

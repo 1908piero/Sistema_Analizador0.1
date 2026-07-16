@@ -26,22 +26,21 @@
             <div class="variable-list" id="variable-list">
                 {% for col in columns %}
                 {% set tipo = classification.get(col, 'desconocido') %}
-                {% set badge_class = {
-                    'cualitativa_nominal': 'badge-qual-nom',
-                    'cualitativa_ordinal': 'badge-qual-ord',
-                    'cuantitativa_discreta': 'badge-quant-disc',
-                    'cuantitativa_continua': 'badge-quant-cont',
-                } %}
                 {% set badge_text = {
                     'cualitativa_nominal': _('dataset.var_type_nominal'),
                     'cualitativa_ordinal': _('dataset.var_type_ordinal'),
                     'cuantitativa_discreta': _('dataset.var_type_discrete'),
                     'cuantitativa_continua': _('dataset.var_type_continuous'),
                 } %}
-                <button class="variable-item" data-var="{{ col }}">
+                <div class="variable-item" data-var="{{ col }}">
                     <span class="var-name">{{ col }}</span>
-                    <span class="var-badge {{ badge_class.get(tipo, '') }}">{{ badge_text.get(tipo, tipo) }}</span>
-                </button>
+                    <select class="var-type-select" data-var="{{ col }}" data-original="{{ tipo }}">
+                        <option value="cualitativa_nominal" {% if tipo == 'cualitativa_nominal' %}selected{% endif %}>{{ _('dataset.var_type_nominal') }}</option>
+                        <option value="cualitativa_ordinal" {% if tipo == 'cualitativa_ordinal' %}selected{% endif %}>{{ _('dataset.var_type_ordinal') }}</option>
+                        <option value="cuantitativa_discreta" {% if tipo == 'cuantitativa_discreta' %}selected{% endif %}>{{ _('dataset.var_type_discrete') }}</option>
+                        <option value="cuantitativa_continua" {% if tipo == 'cuantitativa_continua' %}selected{% endif %}>{{ _('dataset.var_type_continuous') }}</option>
+                    </select>
+                </div>
                 {% endfor %}
             </div>
         </div>

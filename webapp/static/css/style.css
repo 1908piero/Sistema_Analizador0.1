@@ -623,6 +623,24 @@ body {
     flex-shrink: 0;
 }
 
+.var-type-select {
+    font-size: 9px;
+    padding: 1px 4px;
+    border-radius: 4px;
+    border: 1px solid var(--card-border);
+    background: var(--card-bg);
+    color: var(--text-secondary);
+    font-weight: 600;
+    cursor: pointer;
+    flex-shrink: 0;
+    max-width: 110px;
+}
+
+.var-type-select:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
 .badge-qual-nom { background: rgba(0, 184, 148, 0.15); color: #00b894; }
 .badge-qual-ord { background: rgba(162, 155, 254, 0.15); color: #a29bfe; }
 .badge-quant-disc { background: rgba(33, 150, 243, 0.15); color: #2196f3; }

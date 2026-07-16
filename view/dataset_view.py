@@ -316,12 +316,19 @@ class DatasetAnalysisView(ctk.CTkFrame):
         for widget in self.var_listbox.winfo_children():
             widget.destroy()
 
-        type_styles = {
-            "cualitativa_nominal": ("Cual. Nominal", ACCENT_PURPLE),
-            "cualitativa_ordinal": ("Cual. Ordinal", "#b388ff"),
-            "cuantitativa_discreta": ("Cuan. Discreta", ACCENT_SECONDARY),
-            "cuantitativa_continua": ("Cuan. Continua", ACCENT_PRIMARY),
+        type_options = [
+            "Cual. Nominal",
+            "Cual. Ordinal",
+            "Cuan. Discreta",
+            "Cuan. Continua",
+        ]
+        type_map = {
+            "Cual. Nominal": "cualitativa_nominal",
+            "Cual. Ordinal": "cualitativa_ordinal",
+            "Cuan. Discreta": "cuantitativa_discreta",
+            "Cuan. Continua": "cuantitativa_continua",
         }
+        reverse_type_map = {v: k for k, v in type_map.items()}
 
         summary_btn = ctk.CTkButton(self.var_listbox, text=_("dataset.summary_btn"),
                                      anchor="w", font=("Segoe UI", 11, "bold"), height=32,
@@ -334,7 +341,6 @@ class DatasetAnalysisView(ctk.CTkFrame):
 
         for col in data["columns"]:
             var_type = data["classification"].get(col, "desconocido")
-            label, color = type_styles.get(var_type, ("?", TEXT_MUTED))
 
             frm = ctk.CTkFrame(self.var_listbox, fg_color="transparent")
             frm.pack(fill="x", padx=2, pady=1)
@@ -345,10 +351,25 @@ class DatasetAnalysisView(ctk.CTkFrame):
                                  command=lambda v=col: self.analyze_variable(v))
             btn.pack(side="left", fill="x", expand=True)
 
-            badge = ctk.CTkLabel(frm, text=label, font=("Segoe UI", 8, "bold"),
-                                  text_color=color, fg_color="#1a2332",
-                                  corner_radius=4, padx=5, pady=2)
-            badge.pack(side="right", padx=(0, 4))
+            def on_type_change(choice, v=col):
+                new_type = type_map.get(choice, "cualitativa_nominal")
+                self.controller.classification[v] = new_type
+                self.controller.analyze_variable(v)
+                if self.current_var == v:
+                    self.analyze_variable(v)
+
+            current_label = reverse_type_map.get(var_type, "Cual. Nominal")
+            type_var = ctk.StringVar(value=current_label)
+            dropdown = ctk.CTkOptionMenu(frm, values=type_options,
+                                          variable=type_var,
+                                          font=("Segoe UI", 8),
+                                          height=22,
+                                          fg_color="#1a2332",
+                                          button_color="#2d3a4e",
+                                          button_hover_color="#37474f",
+                                          dropdown_font=("Segoe UI", 9),
+                                          command=on_type_change)
+            dropdown.pack(side="right", padx=(0, 4))
 
         self.summary_btn.configure(state="normal")
         self.export_btn.configure(state="disabled")

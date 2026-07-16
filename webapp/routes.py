@@ -206,6 +206,20 @@ def export_apa():
                      download_name='Reporte_Estadistico_APA7.docx')
 
 
+@main_bp.route('/api/reclassify', methods=['POST'])
+def api_reclassify():
+    if 'df_json' not in session:
+        return jsonify({'success': False, 'error': 'No hay datos cargados.'})
+    data = request.get_json()
+    var_name = data.get('var_name')
+    new_type = data.get('new_type')
+    if not var_name or new_type not in ('cualitativa_nominal', 'cualitativa_ordinal', 'cuantitativa_discreta', 'cuantitativa_continua'):
+        return jsonify({'success': False, 'error': 'Parámetros inválidos.'})
+    classification = session.get('classification', {})
+    classification[var_name] = new_type
+    session['classification'] = classification
+    return jsonify({'success': True})
+
 @main_bp.route('/credits')
 def credits():
     return render_template('credits.html', lang=current_lang())

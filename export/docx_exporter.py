@@ -12,35 +12,36 @@ APA_FONT = "Times New Roman"
 APA_SIZE = Pt(12)
 
 
-def _set_cell_borders(cell, top=None, bottom=None, start=None, end=None):
+def _set_cell_borders(cell, top=None, bottom=None, left=None, right=None):
     tc = cell._tc
     tcPr = tc.get_or_add_tcPr()
+    for existing in tcPr.findall(qn('w:tcBorders')):
+        tcPr.remove(existing)
     tcBorders = parse_xml(f'<w:tcBorders {nsdecls("w")}></w:tcBorders>')
-    if top:
+    if top is not None:
         tcBorders.append(parse_xml(
             f'<w:top {nsdecls("w")} w:val="single" w:sz="{top}" w:space="0" w:color="000000"/>'))
-    if bottom:
+    if bottom is not None:
         tcBorders.append(parse_xml(
             f'<w:bottom {nsdecls("w")} w:val="single" w:sz="{bottom}" w:space="0" w:color="000000"/>'))
-    if start:
+    if left is not None:
         tcBorders.append(parse_xml(
-            f'<w:start {nsdecls("w")} w:val="nil"/>'))
-    if end:
+            f'<w:start {nsdecls("w")} w:val="{left}"/>'))
+    if right is not None:
         tcBorders.append(parse_xml(
-            f'<w:end {nsdecls("w")} w:val="nil"/>'))
+            f'<w:end {nsdecls("w")} w:val="{right}"/>'))
     tcPr.append(tcBorders)
 
 
 def _remove_vertical_borders(table):
     for row in table.rows:
         for cell in row.cells:
-            _set_cell_borders(cell, start=True, end=True)
+            _set_cell_borders(cell, left="nil", right="nil")
 
 
 def _set_row_borders(row, sz_top=None, sz_bottom=None):
     for cell in row.cells:
-        _set_cell_borders(cell, top=sz_top, bottom=sz_bottom)
-        _set_cell_borders(cell, start=True, end=True)
+        _set_cell_borders(cell, top=sz_top, bottom=sz_bottom, left="nil", right="nil")
 
 
 class APA7Exporter:
@@ -183,7 +184,7 @@ class APA7Exporter:
         _remove_vertical_borders(table)
         _set_row_borders(table.rows[0], sz_top="12", sz_bottom="6")
         for i in range(1, n_rows):
-            _set_row_borders(table.rows[i], sz_bottom="0")
+            _set_row_borders(table.rows[i])
         _set_row_borders(table.rows[n_rows], sz_bottom="12")
         self._add_note("Elaboración propia a partir de los datos procesados.")
 

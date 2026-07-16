@@ -37,10 +37,28 @@ $(function () {
         $('#upload-form')[0].submit();
     }
 
+    // Variable type change
+    $(document).on('change', '.var-type-select', function () {
+        var varName = $(this).data('var');
+        var newType = $(this).val();
+        $.ajax({
+            url: '/api/reclassify',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ var_name: varName, new_type: newType }),
+            success: function (resp) {
+                if (resp.success && $('.variable-item.active').data('var') === varName) {
+                    loadVariable(varName);
+                }
+            }
+        });
+    });
+
     // Variable click
     var variableItems = $('.variable-item');
     if (variableItems.length) {
-        variableItems.on('click', function () {
+        variableItems.on('click', function (e) {
+            if ($(e.target).is('.var-type-select')) return;
             var varName = $(this).data('var');
             variableItems.removeClass('active');
             $(this).addClass('active');

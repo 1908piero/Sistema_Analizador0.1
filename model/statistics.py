@@ -14,20 +14,27 @@ class VariableClassifier:
 
             unique_count = col_data.nunique()
             total = len(col_data)
-            dtype = col_data.infer_objects().dtype
+            raw_dtype = col_data.dtype
 
-            if pd.api.types.is_numeric_dtype(dtype):
+            if pd.api.types.is_object_dtype(raw_dtype) or pd.api.types.is_string_dtype(raw_dtype):
+                if unique_count <= 8:
+                    classification[col] = "cualitativa_nominal"
+                else:
+                    classification[col] = "cualitativa_ordinal"
+            elif pd.api.types.is_numeric_dtype(raw_dtype):
                 ratio = unique_count / total if total > 0 else 1
                 if ratio < 0.15 or unique_count <= 12:
                     classification[col] = "cuantitativa_discreta"
                 else:
                     classification[col] = "cuantitativa_continua"
             else:
-                if unique_count <= 8:
-                    classification[col] = "cualitativa_nominal"
-                else:
-                    classification[col] = "cualitativa_ordinal"
+                classification[col] = "desconocido"
         return classification
+
+    @staticmethod
+    def reclassify(df: pd.DataFrame, col: str, new_type: str, current_classification: dict) -> dict:
+        current_classification[col] = new_type
+        return current_classification
 
 
 class FrequencyAnalyzer:

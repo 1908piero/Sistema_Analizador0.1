@@ -1,6 +1,7 @@
 import customtkinter as ctk
 import tkinterdnd2
 import os as _os
+from PIL import Image
 from view.sampling_view import SamplingView
 from view.dataset_view import DatasetHomeView, DatasetAnalysisView
 from view.credits_view import CreditsView
@@ -63,19 +64,29 @@ class MainApp(ctk.CTk):
         logo_frame = ctk.CTkFrame(sidebar, fg_color="transparent")
         logo_frame.pack(fill="x", pady=(24, 4))
 
-        self.logo_container = ctk.CTkFrame(logo_frame, width=76, height=76,
-                                            fg_color=CARD_BG, corner_radius=38)
+        self.logo_container = ctk.CTkFrame(logo_frame, width=100, height=100,
+                                            fg_color="transparent", corner_radius=0)
         self.logo_container.pack(anchor="center")
         self.logo_container.pack_propagate(False)
-        self.logo_label = ctk.CTkLabel(self.logo_container, text="UNAS",
-                                        font=("Segoe UI", 16, "bold"),
-                                        text_color=ACCENT_PRIMARY)
+        try:
+            base_dir = _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__)))
+            logo_path = _os.path.join(base_dir, "escudo_unas.png")
+            if _os.path.exists(logo_path):
+                pil_image = Image.open(logo_path)
+                self.logo_image = ctk.CTkImage(light_image=pil_image, dark_image=pil_image, size=(100, 100))
+                self.logo_label = ctk.CTkLabel(self.logo_container, image=self.logo_image, text="")
+            else:
+                self.logo_label = ctk.CTkLabel(self.logo_container, text="UNAS",
+                                                font=("Segoe UI", 16, "bold"),
+                                                text_color=ACCENT_PRIMARY)
+        except Exception:
+            self.logo_label = ctk.CTkLabel(self.logo_container, text="UNAS",
+                                            font=("Segoe UI", 16, "bold"),
+                                            text_color=ACCENT_PRIMARY)
         self.logo_label.place(relx=0.5, rely=0.5, anchor="center")
 
         ctk.CTkLabel(logo_frame, text=_("app.full_title"),
                      font=("Segoe UI", 15, "bold"), text_color=TEXT_PRIMARY).pack(anchor="center", pady=(8, 0))
-        ctk.CTkLabel(logo_frame, text=_("app.subtitle"),
-                     font=("Segoe UI", 11), text_color=TEXT_MUTED).pack(anchor="center")
 
         accent_line = ctk.CTkFrame(sidebar, height=1, fg_color=CARD_BORDER, corner_radius=0)
         accent_line.pack(fill="x", padx=20, pady=(16, 8))
@@ -120,18 +131,6 @@ class MainApp(ctk.CTk):
                                       text_color=TEXT_SECONDARY, corner_radius=8,
                                       command=self._start_tutorial)
         tutorial_btn.pack(anchor="center")
-
-        lang_frame = ctk.CTkFrame(sidebar, fg_color="transparent")
-        lang_frame.pack(side="bottom", fill="x", padx=16, pady=(0, 4))
-        self.lang_var = ctk.StringVar(value=current_lang())
-        self.lang_menu = ctk.CTkComboBox(lang_frame, values=["es", "en", "pt"],
-                                          variable=self.lang_var, state="readonly",
-                                          width=120, height=28,
-                                          font=("Segoe UI", 10),
-                                          fg_color=CARD_BG, border_color=CARD_BORDER,
-                                          button_color=ACCENT_PRIMARY,
-                                          command=self._change_lang)
-        self.lang_menu.pack(anchor="center")
 
         self.sidebar_status = ctk.CTkLabel(sidebar, text=_("app.status_no_data"),
                                              font=("Segoe UI", 10),
@@ -192,7 +191,7 @@ class MainApp(ctk.CTk):
         }
         for k, btn in self.nav_btns.items():
             btn.configure(text=nav_labels.get(k, btn._text))
-        # Rebuild current view
+        ctk.CTkLabel(master=self, text="")  # trigger layout refresh
         if self.active_nav == "home":
             self.show_home()
         elif self.active_nav:
