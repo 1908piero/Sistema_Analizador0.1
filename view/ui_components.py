@@ -4,19 +4,19 @@ from tkinter import ttk
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
 
-SIDEBAR_BG = "#0b1219"
-CONTENT_BG = "#111827"
-CARD_BG = "#1a2332"
-CARD_BORDER = "#2d3a4e"
-ACCENT_PRIMARY = "#2196f3"
-ACCENT_SECONDARY = "#00b894"
-ACCENT_WARNING = "#e17055"
-ACCENT_PURPLE = "#a29bfe"
-TEXT_PRIMARY = "#e4e8ee"
-TEXT_SECONDARY = "#8899aa"
-TEXT_MUTED = "#5a6a7a"
-SUCCESS_GREEN = "#00b894"
-ERROR_RED = "#e17055"
+SIDEBAR_BG = "#0b0e14"
+CONTENT_BG = "#0b0e14"
+CARD_BG = "#161b22"
+CARD_BORDER = "#1e2030"
+ACCENT_PRIMARY = "#6366f1"
+ACCENT_SECONDARY = "#10b981"
+ACCENT_WARNING = "#f59e0b"
+ACCENT_PURPLE = "#a855f7"
+TEXT_PRIMARY = "#e2e8f0"
+TEXT_SECONDARY = "#94a3b8"
+TEXT_MUTED = "#64748b"
+SUCCESS_GREEN = "#10b981"
+ERROR_RED = "#ef4444"
 
 
 class TableWidget(ctk.CTkFrame):

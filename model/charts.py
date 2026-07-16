@@ -8,7 +8,7 @@ import pandas as pd
 import io
 
 plt.style.use("seaborn-v0_8-darkgrid")
-sns.set_palette("deep")
+sns.set_palette(["#6366f1", "#a855f7", "#06b6d4", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#14b8a6"])
 
 
 class ChartGenerator:
@@ -22,10 +22,15 @@ class ChartGenerator:
 
     @staticmethod
     def _configure_axes(ax, title: str, xlabel: str, ylabel: str):
-        ax.set_title(title, fontsize=12, fontweight="bold")
-        ax.set_xlabel(xlabel, fontsize=10)
-        ax.set_ylabel(ylabel, fontsize=10)
-        ax.tick_params(labelsize=8)
+        ax.set_title(title, fontsize=12, fontweight="bold", color="#e2e8f0")
+        ax.set_xlabel(xlabel, fontsize=10, color="#94a3b8")
+        ax.set_ylabel(ylabel, fontsize=10, color="#94a3b8")
+        ax.tick_params(labelsize=8, colors="#64748b")
+        ax.grid(False)
+        for spine in ax.spines.values():
+            spine.set_visible(False)
+        ax.set_facecolor("#0b0e14")
+        ax.figure.patch.set_facecolor("#0b0e14")
 
     @staticmethod
     def _limit_categories(values, fi, max_cat=10):
