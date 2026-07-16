@@ -4,24 +4,24 @@
     --sidebar-bg: #0b0e14;
     --content-bg: #0b0e14;
     --card-bg: #161b22;
-    --card-glass: rgba(22, 27, 34, 0.85);
-    --card-border: rgba(255,255,255,0.06);
-    --accent: #6366f1;
-    --accent-hover: #4f46e5;
-    --accent-glow: rgba(99, 102, 241, 0.15);
+    --card-glass: rgba(255, 255, 255, 0.04);
+    --card-border: rgba(255, 255, 255, 0.08);
+    --accent: #818cf8;
+    --accent-hover: #6366f1;
+    --accent-glow: rgba(129, 140, 248, 0.12);
     --gradient-primary: linear-gradient(135deg, #6366f1, #a855f7);
-    --text-primary: #e2e8f0;
-    --text-secondary: #94a3b8;
-    --text-muted: #64748b;
+    --text-primary: #ffffff;
+    --text-secondary: #b0b3b8;
+    --text-muted: #6b7280;
     --success: #10b981;
     --warning: #f59e0b;
     --danger: #ef4444;
 }
 
 body {
-    background: var(--content-bg);
+    background: linear-gradient(135deg, #0b0e14 0%, #161b22 100%);
     color: var(--text-primary);
-    font-family: 'Inter', 'Roboto', system-ui, -apple-system, sans-serif;
+    font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
     overflow: hidden;
     margin: 0;
     padding: 0;
@@ -191,6 +191,9 @@ body {
         padding-top: 48px;
         height: calc(100vh - 48px);
     }
+    .top-bar {
+        display: none;
+    }
     .main-content {
         flex: 1;
         overflow-y: auto;
@@ -332,16 +335,17 @@ body {
 }
 
 .sidebar-logo {
-    width: 56px;
-    height: 56px;
-    border-radius: 14px;
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
     overflow: hidden;
     margin: 0 auto 14px;
     background: rgba(99, 102, 241, 0.1);
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 0 20px rgba(99, 102, 241, 0.15);
+    box-shadow: 0 0 24px rgba(99, 102, 241, 0.2);
+    border: 2px solid rgba(255,255,255,0.06);
 }
 
 .sidebar-logo img {
@@ -395,14 +399,17 @@ body {
 }
 
 .nav-item.active {
-    background: var(--gradient-primary);
-    color: #fff;
+    background: rgba(129, 140, 248, 0.08);
+    color: var(--accent);
     font-weight: 600;
-    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 10px 10px 0;
+    margin-left: -12px;
+    padding-left: calc(14px - 3px);
 }
 
 .nav-item.active i {
-    color: #fff;
+    color: var(--accent);
 }
 
 .nav-item i {
@@ -459,8 +466,69 @@ body {
 
 .main-content {
     flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: transparent;
+}
+
+.top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 28px;
+    border-bottom: 1px solid var(--card-border);
+    flex-shrink: 0;
+    min-height: 56px;
+}
+
+.top-bar-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.top-bar-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.top-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 1.5px solid rgba(255,255,255,0.1);
+}
+
+.top-bar-logo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.top-user-icon {
+    color: var(--text-muted);
+    font-size: 20px;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.top-user-icon:hover {
+    color: var(--text-secondary);
+}
+
+.content-area {
+    flex: 1;
     overflow-y: auto;
-    background: var(--content-bg);
+    overflow-x: hidden;
+    min-height: 0;
+}
+
+.content-area > .analysis-layout {
+    min-height: 0;
+    height: 100%;
 }
 
 /* Scrollable area inside charts */
@@ -574,6 +642,15 @@ body {
 .analysis-layout {
     display: flex;
     height: 100%;
+    min-height: 0;
+}
+
+.top-bar-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+    letter-spacing: -0.01em;
 }
 
 .variable-sidebar {
@@ -721,7 +798,7 @@ body {
 
 .analysis-content {
     flex: 1;
-    padding: 28px;
+    padding: 24px;
     overflow-y: auto;
 }
 
@@ -742,13 +819,13 @@ body {
 /* Analysis Results */
 .results-section {
     background: var(--card-glass);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border: 1px solid var(--card-border);
     border-radius: 16px;
     padding: 20px;
     margin-bottom: 16px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
 }
 
 .results-section h5 {
@@ -826,8 +903,20 @@ body {
 
 .measures-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 8px;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+}
+
+@media (max-width: 992px) {
+    .measures-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 576px) {
+    .measures-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 .measure-item {
