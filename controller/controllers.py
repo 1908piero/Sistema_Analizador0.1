@@ -251,20 +251,33 @@ class DatasetController:
             all_analyses = []
             vars_to_export = [var_name] if var_name else list(self.df.columns)
             for v in vars_to_export:
-                if v in self.freq_results:
-                    all_analyses.append({
-                        "freq_result": self.freq_results.get(v),
-                        "measures": self.measures_results.get(v),
-                        "charts": self.charts_results.get(v),
-                    })
+                var_type = self.classification.get(v, "desconocido")
+                if var_type == "desconocido":
+                    continue
+                data = self.df[v]
+                freq_result = FrequencyAnalyzer.compute(data, var_type, v)
+                if freq_result is None:
+                    continue
+                measures = MeasuresCalculator.compute(freq_result)
+                charts = ChartGenerator.generate_all_charts(freq_result, v)
+                all_analyses.append({
+                    "freq_result": freq_result,
+                    "measures": measures,
+                    "charts": charts,
+                })
 
             summary = DatasetSummary.summary_statistics(self.df, self.classification)
 
             interpretations = {}
             for v in self.df.columns:
-                if v in self.measures_results:
-                    interpretations[v] = DatasetSummary.generate_interpretation(
-                        self.measures_results[v], v)
+                var_type = self.classification.get(v, "desconocido")
+                if var_type == "desconocido":
+                    continue
+                data = self.df[v]
+                freq_result = FrequencyAnalyzer.compute(data, var_type, v)
+                if freq_result:
+                    measures = MeasuresCalculator.compute(freq_result)
+                    interpretations[v] = DatasetSummary.generate_interpretation(measures, v)
 
             exporter.export_full_analysis(
                 sampling_result=sampling_result,

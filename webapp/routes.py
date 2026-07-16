@@ -265,7 +265,7 @@ def _serialize_freq(freq_result):
 def _serialize_measures(measures):
     if measures is None:
         return None
-    return {k: (round(v, 4) if isinstance(v, float) else v) for k, v in measures.items()}
+    return {k: (round(v, 2) if isinstance(v, float) else v) for k, v in measures.items()}
 
 
 def _serialize_charts(charts):
