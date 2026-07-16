@@ -439,9 +439,29 @@ class DatasetAnalysisView(ctk.CTkFrame):
         charts = data["charts"]
         var_type = data["var_type"]
         n_null = data["n_null"]
+        skipped = data.get("skipped_high_cardinality", False)
 
         self.export_btn.configure(state="normal")
         self.results_area.clear()
+
+        if skipped:
+            self.results_area.add_section_title(f"Variable: {var_name}")
+            self.results_area.add_metrics_row([
+                {"title": "Variable", "value": var_name,
+                 "gradient_from": "#1a237e", "gradient_to": "#283593"},
+                {"title": "Tipo", "value": "Cualitativa Nominal (Alta Cardinalidad)",
+                 "gradient_from": "#4a148c", "gradient_to": "#6a1b9a"},
+                {"title": "n", "value": str(data.get("n", 0)),
+                 "gradient_from": "#00695c", "gradient_to": "#00897b"},
+                {"title": "Nulos", "value": str(n_null),
+                 "gradient_from": "#bf360c", "gradient_to": "#e65100"},
+            ])
+            self.results_area.add_separator()
+            self.results_area.add_text(
+                "Variable con alta cardinalidad (identificador único). "
+                "Se omite la tabla de frecuencias y gráficos para mantener el rendimiento."
+            )
+            return
 
         type_labels = {
             "cualitativa_nominal": "Cualitativa Nominal",

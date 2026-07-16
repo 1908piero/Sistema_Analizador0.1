@@ -19,6 +19,8 @@ class VariableClassifier:
             if pd.api.types.is_object_dtype(raw_dtype) or pd.api.types.is_string_dtype(raw_dtype):
                 if unique_count <= 8:
                     classification[col] = "cualitativa_nominal"
+                elif unique_count > 0.7 * total:
+                    classification[col] = "cualitativa_nominal"
                 else:
                     classification[col] = "cualitativa_ordinal"
             elif pd.api.types.is_numeric_dtype(raw_dtype):

@@ -1,5 +1,6 @@
 import pandas as pd
 import os
+import re
 import json
 import traceback
 
@@ -66,6 +67,21 @@ class DatasetController:
         self.charts_results = {}
         self._current_var = None
 
+    @staticmethod
+    def _clean_dataframe(df: pd.DataFrame) -> pd.DataFrame:
+        df = df.copy()
+        df.columns = df.columns.str.strip().str.replace(r'\s+', '_', regex=True)
+        for col in df.select_dtypes(include=['object']).columns:
+            df[col] = df[col].astype(str).str.strip()
+            df[col] = df[col].replace('nan', pd.NA)
+        return df
+
+    @staticmethod
+    def _is_high_cardinality(var_type: str, unique_count: int, n_total: int) -> bool:
+        if var_type.startswith("cualitativa") and unique_count > 0.7 * n_total:
+            return True
+        return False
+
     def load_file(self, filepath: str) -> dict:
         if not os.path.exists(filepath):
             return {"success": False, "error": "El archivo no existe."}
@@ -82,6 +98,7 @@ class DatasetController:
             if self.df.empty:
                 return {"success": False, "error": "El archivo está vacío."}
 
+            self.df = self._clean_dataframe(self.df)
             self.filepath = filepath
             self.classification = VariableClassifier.classify(self.df)
             self.freq_results = {}
@@ -123,7 +140,7 @@ class DatasetController:
             df = df.dropna(how="all").reset_index(drop=True)
             if df.empty:
                 return {"success": False, "error": "La hoja de cálculo está vacía."}
-            self.df = df
+            self.df = self._clean_dataframe(df)
             self.filepath = f"gsheet://{sh.id}"
             self.classification = VariableClassifier.classify(self.df)
             self.freq_results = {}
@@ -144,7 +161,7 @@ class DatasetController:
             engine.dispose()
             if df.empty:
                 return {"success": False, "error": "La consulta no devolvió datos."}
-            self.df = df
+            self.df = self._clean_dataframe(df)
             self.filepath = f"sql://{conn_str.split('@')[-1] if '@' in conn_str else conn_str}"
             self.classification = VariableClassifier.classify(self.df)
             self.freq_results = {}
@@ -185,9 +202,22 @@ class DatasetController:
 
             data = self.df[var_name]
 
-            n_null = data.isna().sum()
-            if n_null > 0:
-                pass
+            n_null = int(data.isna().sum())
+            n_total = len(data)
+
+            if self._is_high_cardinality(var_type, data.nunique(), n_total):
+                return {
+                    "success": True,
+                    "data": {
+                        "freq_result": None,
+                        "measures": None,
+                        "charts": None,
+                        "n_null": n_null,
+                        "var_type": var_type,
+                        "skipped_high_cardinality": True,
+                        "n": n_total,
+                    },
+                }
 
             freq_result = FrequencyAnalyzer.compute(data, var_type, var_name)
             if freq_result is None:
@@ -207,8 +237,9 @@ class DatasetController:
                     "freq_result": freq_result,
                     "measures": measures,
                     "charts": charts,
-                    "n_null": int(n_null),
+                    "n_null": n_null,
                     "var_type": var_type,
+                    "skipped_high_cardinality": False,
                 },
             }
         except Exception as e:
@@ -243,6 +274,9 @@ class DatasetController:
             vars_to_export = [var_name] if var_name else list(self.df.columns)
             for v in vars_to_export:
                 if v in self.freq_results:
+                    var_type = self.classification.get(v, "")
+                    if self._is_high_cardinality(var_type, self.df[v].nunique(), len(self.df)):
+                        continue
                     all_analyses.append({
                         "freq_result": self.freq_results.get(v),
                         "measures": self.measures_results.get(v),

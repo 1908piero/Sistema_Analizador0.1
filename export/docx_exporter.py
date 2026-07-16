@@ -171,7 +171,7 @@ class APA7Exporter:
                 cell = table.rows[i + 1].cells[j]
                 val = df.iloc[i, j]
                 if isinstance(val, float):
-                    val = f"{val:.4f}"
+                    val = f"{val:.2f}"
                 else:
                     val = str(val)
                 cell.text = ""
@@ -195,7 +195,7 @@ class APA7Exporter:
             ["Nivel de confianza", f"{result['confidence']}%"],
             ["Valor Z", f"{result['Z']:.3f}"],
             ["Probabilidad de éxito (p)", f"{result['p']}"],
-            ["Probabilidad de fracaso (q)", f"{result['q']:.4f}"],
+            ["Probabilidad de fracaso (q)", f"{result['q']:.2f}"],
             ["Error admisible (e)", f"{result['e']}"],
         ]
 
@@ -259,43 +259,43 @@ class APA7Exporter:
             return
 
         central_data = [
-            ["Media aritmética (X̄)", f"{measures['mean']:.4f}"],
-            ["Mediana (Me)", f"{measures['median']:.4f}"],
-            ["Moda (Mo)", f"{measures['mode']:.4f}"],
-            ["Media geométrica (X̄g)", f"{measures['geometric_mean']:.4f}"],
-            ["Media armónica (Mh)", f"{measures['harmonic_mean']:.4f}"],
+            ["Media aritmética (X̄)", f"{measures['mean']:.2f}"],
+            ["Mediana (Me)", f"{measures['median']:.2f}"],
+            ["Moda (Mo)", f"{measures['mode']:.2f}"],
+            ["Media geométrica (X̄g)", f"{measures['geometric_mean']:.2f}"],
+            ["Media armónica (Mh)", f"{measures['harmonic_mean']:.2f}"],
         ]
         df_central = pd.DataFrame(central_data, columns=["Medida", "Valor"])
         self._apa_table_from_df(df_central, "Medidas de tendencia central")
 
         dispersion_data = [
-            ["Rango", f"{measures['range']:.4f}"],
-            ["Varianza muestral (S²)", f"{measures['variance']:.4f}"],
-            ["Desviación estándar (S)", f"{measures['std_dev']:.4f}"],
+            ["Rango", f"{measures['range']:.2f}"],
+            ["Varianza muestral (S²)", f"{measures['variance']:.2f}"],
+            ["Desviación estándar (S)", f"{measures['std_dev']:.2f}"],
             ["Coeficiente de variación (CV%)", f"{measures['cv']:.2f}%"],
         ]
         df_disp = pd.DataFrame(dispersion_data, columns=["Medida", "Valor"])
         self._apa_table_from_df(df_disp, "Medidas de dispersión")
 
         position_data = [
-            ["Cuartil 1 (Q₁)", f"{measures['Q1']:.4f}"],
-            ["Cuartil 2 (Q₂) = Mediana", f"{measures['Q2']:.4f}"],
-            ["Cuartil 3 (Q₃)", f"{measures['Q3']:.4f}"],
-            ["Decil 1 (D₁)", f"{measures['D1']:.4f}"],
-            ["Decil 5 (D₅)", f"{measures['D5']:.4f}"],
-            ["Decil 9 (D₉)", f"{measures['D9']:.4f}"],
-            ["Percentil 10 (P₁₀)", f"{measures['P10']:.4f}"],
-            ["Percentil 25 (P₂₅)", f"{measures['P25']:.4f}"],
-            ["Percentil 50 (P₅₀)", f"{measures['P50']:.4f}"],
-            ["Percentil 75 (P₇₅)", f"{measures['P75']:.4f}"],
-            ["Percentil 90 (P₉₀)", f"{measures['P90']:.4f}"],
+            ["Cuartil 1 (Q₁)", f"{measures['Q1']:.2f}"],
+            ["Cuartil 2 (Q₂) = Mediana", f"{measures['Q2']:.2f}"],
+            ["Cuartil 3 (Q₃)", f"{measures['Q3']:.2f}"],
+            ["Decil 1 (D₁)", f"{measures['D1']:.2f}"],
+            ["Decil 5 (D₅)", f"{measures['D5']:.2f}"],
+            ["Decil 9 (D₉)", f"{measures['D9']:.2f}"],
+            ["Percentil 10 (P₁₀)", f"{measures['P10']:.2f}"],
+            ["Percentil 25 (P₂₅)", f"{measures['P25']:.2f}"],
+            ["Percentil 50 (P₅₀)", f"{measures['P50']:.2f}"],
+            ["Percentil 75 (P₇₅)", f"{measures['P75']:.2f}"],
+            ["Percentil 90 (P₉₀)", f"{measures['P90']:.2f}"],
         ]
         df_pos = pd.DataFrame(position_data, columns=["Medida", "Valor"])
         self._apa_table_from_df(df_pos, "Medidas de posición (cuartiles, deciles y percentiles)")
 
         shape_data = [
-            ["Coeficiente de asimetría (Sesgo)", f"{measures['skewness']:.4f}"],
-            ["Coeficiente de curtosis (Exceso)", f"{measures['kurtosis']:.4f}"],
+            ["Coeficiente de asimetría (Sesgo)", f"{measures['skewness']:.2f}"],
+            ["Coeficiente de curtosis (Exceso)", f"{measures['kurtosis']:.2f}"],
         ]
         df_shape = pd.DataFrame(shape_data, columns=["Medida", "Valor"])
         self._apa_table_from_df(df_shape, "Medidas de forma (asimetría y curtosis)")
@@ -328,7 +328,7 @@ class APA7Exporter:
             display_df = summary.copy()
             for col in display_df.columns:
                 if display_df[col].dtype in ["float64", "float32", "float"]:
-                    display_df[col] = display_df[col].apply(lambda x: f"{x:.4f}")
+                    display_df[col] = display_df[col].apply(lambda x: f"{x:.2f}")
             self._apa_table_from_df(display_df,
                 "Resumen de estadísticos descriptivos para todas las variables cuantitativas")
 
