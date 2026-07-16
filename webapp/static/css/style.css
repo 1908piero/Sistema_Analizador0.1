@@ -335,13 +335,13 @@ body {
 }
 
 .sidebar.collapsed {
-    width: 68px;
-    min-width: 68px;
+    width: 80px;
+    min-width: 80px;
 }
 
 .sidebar.expanded {
-    width: 260px;
-    min-width: 260px;
+    width: 250px;
+    min-width: 250px;
 }
 
 .sidebar-header {
@@ -350,36 +350,32 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    position: relative;
 }
 
-.sidebar-toggle {
-    position: absolute;
-    top: 12px;
-    right: 8px;
+.topbar-toggle {
     background: rgba(255,255,255,0.04);
     border: 1px solid var(--card-border);
     color: var(--text-muted);
-    width: 24px;
-    height: 24px;
-    border-radius: 6px;
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     transition: all 0.2s;
-    z-index: 2;
+    flex-shrink: 0;
 }
-.sidebar-toggle:hover {
+.topbar-toggle:hover {
     background: rgba(99,102,241,0.1);
     color: var(--accent);
+    border-color: rgba(99,102,241,0.3);
 }
-.sidebar.collapsed .sidebar-toggle {
-    right: auto;
-    top: 16px;
+.topbar-toggle svg {
+    transition: transform 0.3s ease;
 }
-.sidebar.collapsed .sidebar-toggle svg {
-    transform: rotate(180deg);
+.topbar-toggle.rotated svg {
+    transform: rotate(90deg);
 }
 
 .sidebar-logo {
