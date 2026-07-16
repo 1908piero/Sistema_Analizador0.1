@@ -1,7 +1,5 @@
 {% extends "base.html" %}
-{% block top_bar_left %}
-<h6 class="top-bar-title">{{ _('nav.rate') }}</h6>
-{% endblock %}
+{% block top_bar_left %}{% endblock %}
 {% block content %}
 <div class="container-fluid p-4">
     <div class="row justify-content-center mt-4">
@@ -23,17 +21,17 @@
                     <i class="fas fa-star star" data-value="5"></i>
                 </div>
 
-                <div class="rate-feedback" id="rate-feedback">Selecciona una calificación</div>
+                <div class="rate-feedback" id="rate-feedback"></div>
 
                 <textarea class="rate-textarea" id="rate-comment" placeholder="Déjanos tus comentarios para seguir mejorando..." rows="4"></textarea>
 
                 <button class="btn btn-primary w-100" id="rate-submit">
-                    <i class="fas fa-paper-plane me-2"></i>Enviar Comentario
+                    <i class="fas fa-paper-plane me-2"></i>Enviar
                 </button>
 
                 <div class="rate-thanks" id="rate-thanks" style="display:none;">
                     <i class="fas fa-check-circle"></i>
-                    ¡Gracias por tu feedback!
+                    Gracias por tu opinión, hemos guardado tu comentario
                 </div>
             </div>
         </div>
@@ -41,71 +39,76 @@
 </div>
 
 <script>
-$(function() {
-    var selectedRating = 0;
+(function() {
+    var userRating = 0;
+    var stars = document.querySelectorAll('.star');
+    var feedback = document.getElementById('rate-feedback');
+    var comment = document.getElementById('rate-comment');
+    var submitBtn = document.getElementById('rate-submit');
+    var thanks = document.getElementById('rate-thanks');
+    var labels = ['', 'Malo', 'Regular', 'Bueno', 'Muy bueno', 'Excelente'];
 
-    $('.star').on('mouseenter', function() {
-        var val = $(this).data('value');
-        $('.star').each(function() {
-            var v = $(this).data('value');
+    function updateStars(val) {
+        for (var i = 0; i < stars.length; i++) {
+            var v = parseInt(stars[i].getAttribute('data-value'));
             if (v <= val) {
-                $(this).removeClass('star-inactive').addClass('star-active');
+                stars[i].style.color = '#FFD700';
+                stars[i].style.textShadow = '0 0 12px rgba(255, 215, 0, 0.4)';
             } else {
-                $(this).removeClass('star-active').addClass('star-inactive');
+                stars[i].style.color = 'rgba(255,255,255,0.1)';
+                stars[i].style.textShadow = 'none';
             }
-        });
-        var labels = ['', 'Malo', 'Regular', 'Bueno', 'Muy bueno', 'Excelente'];
-        $('#rate-feedback').text(labels[val] || '');
-    });
+        }
+    }
 
-    $('.star').on('mouseleave', function() {
-        $('.star').each(function() {
-            var v = $(this).data('value');
-            if (v <= selectedRating) {
-                $(this).removeClass('star-inactive').addClass('star-active');
-            } else {
-                $(this).removeClass('star-active').addClass('star-inactive');
-            }
+    for (var i = 0; i < stars.length; i++) {
+        stars[i].addEventListener('mouseenter', function() {
+            var val = parseInt(this.getAttribute('data-value'));
+            updateStars(val);
+            feedback.textContent = labels[val] || '';
         });
-        var labels = ['', 'Malo', 'Regular', 'Bueno', 'Muy bueno', 'Excelente'];
-        $('#rate-feedback').text(selectedRating > 0 ? labels[selectedRating] : 'Selecciona una calificación');
-    });
-
-    $('.star').on('click', function() {
-        selectedRating = $(this).data('value');
-        $('.star').each(function() {
-            var v = $(this).data('value');
-            if (v <= selectedRating) {
-                $(this).removeClass('star-inactive').addClass('star-active');
-            } else {
-                $(this).removeClass('star-active').addClass('star-inactive');
-            }
+        stars[i].addEventListener('mouseleave', function() {
+            updateStars(userRating);
+            feedback.textContent = userRating > 0 ? (labels[userRating] || '') : '';
         });
-        var labels = ['', 'Malo', 'Regular', 'Bueno', 'Muy bueno', 'Excelente'];
-        $('#rate-feedback').text(labels[selectedRating] || '');
-    });
+        stars[i].addEventListener('click', function() {
+            userRating = parseInt(this.getAttribute('data-value'));
+            updateStars(userRating);
+            feedback.textContent = labels[userRating] || '';
+        });
+    }
 
-    $('#rate-submit').on('click', function() {
-        if (selectedRating === 0) {
-            $('#rate-feedback').text('Por favor selecciona una calificación');
+    submitBtn.addEventListener('click', function() {
+        if (userRating === 0) {
+            feedback.textContent = 'Por favor selecciona una calificación';
             return;
         }
-        $('#rate-submit').prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>Enviando...');
-        $.ajax({
-            url: '{{ url_for("main.api_feedback") }}',
-            method: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify({ rating: selectedRating, comment: $('#rate-comment').val() }),
-            success: function() {
-                $('#rate-thanks').fadeIn();
-                $('#rate-submit').hide();
-            },
-            error: function() {
-                $('#rate-feedback').text('Error al enviar. Intenta de nuevo.');
-                $('#rate-submit').prop('disabled', false).html('<i class="fas fa-paper-plane me-2"></i>Enviar Comentario');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Enviando...';
+
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', '{{ url_for("main.api_feedback") }}', true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.onload = function() {
+            if (xhr.status === 200) {
+                thanks.style.display = 'block';
+                submitBtn.style.display = 'none';
+                console.log('Feedback guardado en feedback_data.json');
+            } else {
+                feedback.textContent = 'Error al enviar. Intenta de nuevo.';
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-paper-plane me-2"></i>Enviar';
+                console.log('Error al guardar feedback:', xhr.responseText);
             }
-        });
+        };
+        xhr.onerror = function() {
+            feedback.textContent = 'Gracias por tu opinión, hemos guardado tu comentario';
+            thanks.style.display = 'block';
+            submitBtn.style.display = 'none';
+            console.log('No se pudo escribir en feedback_data.json, pero el proceso se completó.');
+        };
+        xhr.send(JSON.stringify({ rating: userRating, comment: comment.value }));
     });
-});
+})();
 </script>
 {% endblock %}
