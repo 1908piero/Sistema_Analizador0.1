@@ -5,8 +5,8 @@
         <div class="col-lg-8 col-xl-6">
             <div class="card">
                 <div class="card-body text-center p-5">
-                    <div class="logo-circle" style="width:90px;height:90px;margin:0 auto 12px;">
-                        <span class="logo-text" style="font-size:22px;">UNAS</span>
+                    <div class="logo-circle" style="width:90px;height:90px;margin:0 auto 12px;overflow:hidden;">
+                        <img src="{{ url_for('static', filename='escudo_unas.png') }}" alt="UNAS" style="width:100%;height:100%;object-fit:contain;">
                     </div>
                     <h3>{{ _('app.full_title') }}</h3>
                     <small class="text-muted">{{ _('app.version') }}</small>

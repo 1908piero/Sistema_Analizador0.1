@@ -69,17 +69,28 @@ class ChartGenerator:
         values = table.iloc[:, 0].astype(str)
         fi = table["fi"].values
 
-        if len(values) > 10:
-            values, fi = ChartGenerator._limit_categories(values, fi)
+        if len(values) > 6:
+            values, fi = ChartGenerator._limit_categories(values, fi, max_cat=6)
 
         fig, ax = plt.subplots(figsize=(7, 5))
-        wedges, texts, autotexts = ax.pie(
-            fi, labels=values, autopct="%1.1f%%",
-            startangle=90, colors=sns.color_palette("deep", len(values)),
-            textprops={"fontsize": 8},
-        )
-        for t in autotexts:
-            t.set_fontsize(7)
+        if len(values) > 6:
+            wedges, texts, autotexts = ax.pie(
+                fi, labels=None, autopct="%1.1f%%",
+                startangle=90, colors=sns.color_palette("deep", len(values)),
+                textprops={"fontsize": 8},
+            )
+            for t in autotexts:
+                t.set_fontsize(7)
+            ax.legend(wedges, values, loc="center left", bbox_to_anchor=(1, 0.5),
+                      fontsize=7, title_fontsize=8, framealpha=0.8)
+        else:
+            wedges, texts, autotexts = ax.pie(
+                fi, labels=values, autopct="%1.1f%%",
+                startangle=90, colors=sns.color_palette("deep", len(values)),
+                textprops={"fontsize": 8},
+            )
+            for t in autotexts:
+                t.set_fontsize(7)
         ax.set_title(f"Distribución porcentual de {var_name} (n={n})", fontsize=11, fontweight="bold")
         fig.tight_layout()
         return ChartGenerator._fig_to_bytes(fig)

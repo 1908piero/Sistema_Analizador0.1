@@ -241,7 +241,7 @@ def _serialize_freq(freq_result):
     for r in rows:
         for i, v in enumerate(r):
             if isinstance(v, float):
-                r[i] = round(v, 4)
+                r[i] = round(v, 2)
     return {
         'var_name': freq_result['var_name'],
         'var_type': freq_result['var_type'],

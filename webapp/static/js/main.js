@@ -260,7 +260,7 @@ $(function () {
 
     function formatVal(val) {
         if (val === null || val === undefined) return '-';
-        if (typeof val === 'number') return val.toFixed(4);
+        if (typeof val === 'number') return val.toFixed(2);
         return String(val);
     }
 

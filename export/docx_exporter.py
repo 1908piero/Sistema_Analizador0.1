@@ -239,7 +239,7 @@ class APA7Exporter:
         display_df = table[display_cols].copy()
         for col in display_df.columns:
             if display_df[col].dtype in ["float64", "float32"]:
-                display_df[col] = display_df[col].apply(lambda x: f"{x:.4f}")
+                display_df[col] = display_df[col].apply(lambda x: f"{x:.2f}")
 
         self._apa_table_from_df(display_df, title)
 

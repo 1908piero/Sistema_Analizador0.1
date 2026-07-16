@@ -477,7 +477,7 @@ class DatasetAnalysisView(ctk.CTkFrame):
 
         rows = []
         for _, row in table[display_cols].iterrows():
-            rows.append([f"{v:.4f}" if isinstance(v, float) else str(v) for v in row])
+            rows.append([f"{v:.2f}" if isinstance(v, float) else str(v) for v in row])
 
         self.results_area.add_table(display_cols, rows)
 

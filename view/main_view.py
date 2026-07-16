@@ -42,7 +42,6 @@ class MainApp(ctk.CTk):
         self.home_view = None
         self.analysis_view = None
         self.credits_view = None
-        self.lang_menu = None
         self.sidebar_status_label = None
 
         self.setup_ui()
@@ -65,7 +64,7 @@ class MainApp(ctk.CTk):
         logo_frame.pack(fill="x", pady=(24, 4))
 
         self.logo_container = ctk.CTkFrame(logo_frame, width=100, height=100,
-                                            fg_color="transparent", corner_radius=0)
+                                            fg_color="#1a2332", corner_radius=12)
         self.logo_container.pack(anchor="center")
         self.logo_container.pack_propagate(False)
         try:
@@ -76,11 +75,11 @@ class MainApp(ctk.CTk):
                 self.logo_image = ctk.CTkImage(light_image=pil_image, dark_image=pil_image, size=(100, 100))
                 self.logo_label = ctk.CTkLabel(self.logo_container, image=self.logo_image, text="")
             else:
-                self.logo_label = ctk.CTkLabel(self.logo_container, text="UNAS",
+                self.logo_label = ctk.CTkLabel(self.logo_container, text="",
                                                 font=("Segoe UI", 16, "bold"),
                                                 text_color=ACCENT_PRIMARY)
         except Exception:
-            self.logo_label = ctk.CTkLabel(self.logo_container, text="UNAS",
+            self.logo_label = ctk.CTkLabel(self.logo_container, text="",
                                             font=("Segoe UI", 16, "bold"),
                                             text_color=ACCENT_PRIMARY)
         self.logo_label.place(relx=0.5, rely=0.5, anchor="center")
