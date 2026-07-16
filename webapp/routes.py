@@ -8,6 +8,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, sessio
 
 from model.statistics import VariableClassifier, FrequencyAnalyzer, MeasuresCalculator, DatasetSummary
 from model.charts import ChartGenerator
+from model.sampling import calculate_sample_size
 from model.i18n import _, set_language, current_lang
 from export.docx_exporter import APA7Exporter
 
@@ -140,9 +141,23 @@ def api_summary():
     })
 
 
-@main_bp.route('/sampling')
+@main_bp.route('/sampling', methods=['GET', 'POST'])
 def sampling():
-    return redirect(url_for('main.analysis'))
+    result = None
+    if request.method == 'POST':
+        try:
+            confidence = int(request.form.get('confidence', 95))
+            p = float(request.form.get('p', 0.5))
+            e = float(request.form.get('e', 0.05))
+            N_str = request.form.get('N', '').strip()
+            N = int(N_str) if N_str else None
+            result = calculate_sample_size(confidence, p, e, N)
+        except ValueError as e:
+            result = {'error': str(e)}
+        except Exception as e:
+            result = {'error': f'Error inesperado: {str(e)}'}
+
+    return render_template('sampling.html', lang=current_lang(), result=result)
 
 
 @main_bp.route('/anova1')
