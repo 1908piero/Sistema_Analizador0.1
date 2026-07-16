@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block top_bar_left %}
+<h6 class="top-bar-title">{{ _('nav.home') }}</h6>
+{% endblock %}
+{% block content %}
+{% if upload_error %}
+<div id="upload-error-trigger" data-msg="{{ upload_error }}" style="display:none;"></div>
+<script>
+$(function() {
+    var el = document.getElementById('upload-error-trigger');
+    if (el && typeof showToast === 'function') {
+        showToast(el.getAttribute('data-msg'), 'error');
+    }
+});
+</script>
+{% endif %}
+<div class="container-fluid p-4">
+    <div class="row justify-content-center mt-5">
+        <div class="col-lg-8 col-xl-6">
+            <div class="card welcome-card">
+                <div class="card-body text-center p-5">
+                    <div class="welcome-icon">
+                        <i class="fas fa-chart-bar"></i>
+                    </div>
+                    <h2 class="welcome-title">{{ _('home.title') }}</h2>
+                    <p class="welcome-subtitle">{{ _('home.subtitle') }}</p>
+
+                    <form id="upload-form" action="{{ url_for('main.upload') }}" method="post" enctype="multipart/form-data">
+                        <label class="drop-zone" id="drop-zone" for="file-input">
+                            <i class="fas fa-cloud-upload-alt fa-3x drop-icon"></i>
+                            <p class="drop-text">{{ _('home.drop_text') }}</p>
+                            <p class="drop-subtext">{{ _('home.drop_subtext') }}</p>
+                            <input type="file" name="file" id="file-input" class="file-input"
+                                   accept=".csv,.xls,.xlsx">
+                            <span class="drop-formats">{{ _('home.drop_formats') }}</span>
+                        </label>
+                        <label for="file-input" class="btn btn-primary btn-lg mt-3" id="browse-label">
+                            <i class="fas fa-folder-open me-2"></i>{{ _('home.browse_btn') }}
+                        </label>
+                    </form>
+
+                    <div id="upload-status" class="mt-4" style="display:none;">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">{{ _('home.loading') }}</span>
+                        </div>
+                        <p class="mt-2 text-muted">{{ _('home.loading') }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mt-4 g-3">
+                <div class="col-md-4">
+                    <div class="card feature-card text-center p-3">
+                        <i class="fas fa-filter fa-2x text-primary mb-2"></i>
+                        <h6>{{ _('nav.home_desc') }}</h6>
+                        <small class="text-muted">{{ _('dataset.var_type_nominal') }}, {{ _('dataset.var_type_ordinal') }}...</small>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card feature-card text-center p-3">
+                        <i class="fas fa-calculator fa-2x text-success mb-2"></i>
+                        <h6>{{ _('dataset.central_tendency') }}</h6>
+                        <small class="text-muted">{{ _('measures.mean') }}, {{ _('measures.median') }}, {{ _('measures.mode') }}</small>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card feature-card text-center p-3">
+                        <i class="fas fa-file-word fa-2x text-info mb-2"></i>
+                        <h6>{{ _('dataset.export_btn') }}</h6>
+                        <small class="text-muted">{{ _('nav.export_hint') }}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
