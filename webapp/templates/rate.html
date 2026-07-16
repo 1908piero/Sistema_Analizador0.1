@@ -3,6 +3,20 @@
 <h6 class="top-bar-title">Reseñas</h6>
 {% endblock %}
 {% block content %}
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<!--
+REGLAS DE SEGURIDAD PARA FIREBASE REALTIME DATABASE (Consola Firebase -> Realtime Database -> Reglas):
+{
+  "rules": {
+    "reviews": {
+      ".read": true,
+      ".write": true
+    }
+  }
+}
+-->
+
 <div class="container-fluid p-4">
     <div class="row justify-content-center">
         <div class="col-lg-6 col-xl-5">
@@ -46,12 +60,30 @@
     var userRating = 0;
     var stars = document.querySelectorAll('.star');
     var feedback = document.getElementById('rate-feedback');
-    var comment = document.getElementById('rate-comment');
+    var commentEl = document.getElementById('rate-comment');
     var submitBtn = document.getElementById('rate-submit');
     var reviewList = document.getElementById('review-list');
     var confirmMsg = document.getElementById('rate-confirm');
     var labels = ['', 'Malo', 'Regular', 'Bueno', 'Muy bueno', 'Excelente'];
     var STORAGE_KEY = 'app_reviews';
+    var useFirebase = false;
+    var reviewsRef = null;
+
+    try {
+        var fbApp = firebase.initializeApp({
+            apiKey: "AIzaSyDemo123456789",
+            authDomain: "tu-proyecto.firebaseapp.com",
+            databaseURL: "https://tu-proyecto-default-rtdb.firebaseio.com",
+            projectId: "tu-proyecto",
+            storageBucket: "tu-proyecto.appspot.com",
+            messagingSenderId: "000000000000",
+            appId: "1:000000000000:web:0000000000000000"
+        });
+        reviewsRef = firebase.database(fbApp).ref('reviews');
+        useFirebase = true;
+    } catch (e) {
+        console.warn('Firebase no disponible, usando localStorage.');
+    }
 
     function updateStars(val) {
         for (var i = 0; i < stars.length; i++) {
@@ -71,25 +103,20 @@
         return d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
     }
 
-    function getReviews() {
-        try {
-            return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-        } catch(e) { return []; }
+    function escapeHtml(text) {
+        var div = document.createElement('div');
+        div.appendChild(document.createTextNode(text));
+        return div.innerHTML;
     }
 
-    function saveReviews(arr) {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
-    }
-
-    function renderReviews() {
-        var data = getReviews();
-        data.reverse();
+    function renderReviews(data) {
+        var arr = data.slice().reverse();
         var html = '';
-        if (data.length === 0) {
+        if (arr.length === 0) {
             html = '<div class="review-empty"><i class="fas fa-star"></i>No hay reseñas aún. ¡Sé el primero!</div>';
         } else {
-            for (var i = 0; i < data.length; i++) {
-                var r = data[i];
+            for (var i = 0; i < arr.length; i++) {
+                var r = arr[i];
                 var starHtml = '';
                 for (var s = 1; s <= 5; s++) {
                     starHtml += s <= r.rating ? '<i class="fas fa-star"></i>' : '<i class="far fa-star" style="color:rgba(255,255,255,0.15)"></i>';
@@ -106,12 +133,6 @@
         reviewList.innerHTML = html;
     }
 
-    function escapeHtml(text) {
-        var div = document.createElement('div');
-        div.appendChild(document.createTextNode(text));
-        return div.innerHTML;
-    }
-
     function showToast(msg) {
         var toast = document.createElement('div');
         toast.textContent = msg;
@@ -122,6 +143,43 @@
             toast.style.opacity = '0';
             setTimeout(function() { toast.remove(); }, 400);
         }, 3000);
+    }
+
+    function startListener() {
+        if (useFirebase) {
+            reviewsRef.on('value', function(snapshot) {
+                var data = snapshot.val();
+                var arr = [];
+                for (var key in data) {
+                    if (data.hasOwnProperty(key)) {
+                        arr.push(data[key]);
+                    }
+                }
+                renderReviews(arr);
+            });
+        } else {
+            try {
+                var data = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+                renderReviews(data);
+            } catch(e) {
+                renderReviews([]);
+            }
+        }
+    }
+
+    function submitReview(rating, commentText, dateStr) {
+        var entry = { rating: rating, comment: commentText, date: dateStr };
+        if (useFirebase) {
+            reviewsRef.push(entry);
+        } else {
+            var existing = [];
+            try {
+                existing = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+            } catch(e) {}
+            existing.push(entry);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(existing));
+            renderReviews(existing);
+        }
     }
 
     for (var i = 0; i < stars.length; i++) {
@@ -146,24 +204,17 @@
             feedback.textContent = 'Por favor selecciona una calificación';
             return;
         }
-        var reviews = getReviews();
-        reviews.push({
-            rating: userRating,
-            comment: comment.value,
-            date: formatDate(new Date())
-        });
-        saveReviews(reviews);
+        submitReview(userRating, commentEl.value, formatDate(new Date()));
         userRating = 0;
         updateStars(0);
-        comment.value = '';
+        commentEl.value = '';
         feedback.textContent = '';
         showToast('Reseña guardada con éxito', 'success');
         confirmMsg.classList.add('show');
         setTimeout(function() { confirmMsg.classList.remove('show'); }, 3000);
-        renderReviews();
     });
 
-    renderReviews();
+    startListener();
 })();
 </script>
 {% endblock %}
