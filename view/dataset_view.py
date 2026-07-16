@@ -493,18 +493,18 @@ class DatasetAnalysisView(ctk.CTkFrame):
 
             self.results_area.add_subtitle(_("dataset.central_tendency"))
             self.results_area.add_table(["Medida", "Valor"], [
-                ["Media (X\u0304)", f"{measures['mean']:.4f}"],
-                ["Mediana (Me)", f"{measures['median']:.4f}"],
-                ["Moda (Mo)", f"{measures['mode']:.4f}"],
-                ["Media Geom\u00E9trica (X\u0304g)", f"{measures['geometric_mean']:.4f}"],
-                ["Media Arm\u00F3nica (Mh)", f"{measures['harmonic_mean']:.4f}"],
+                ["Media (X\u0304)", f"{measures['mean']:.2f}"],
+                ["Mediana (Me)", f"{measures['median']:.2f}"],
+                ["Moda (Mo)", f"{measures['mode']:.2f}"],
+                ["Media Geom\u00E9trica (X\u0304g)", f"{measures['geometric_mean']:.2f}"],
+                ["Media Arm\u00F3nica (Mh)", f"{measures['harmonic_mean']:.2f}"],
             ])
 
             self.results_area.add_subtitle(_("dataset.dispersion"))
             self.results_area.add_table(["Medida", "Valor"], [
-                ["Rango", f"{measures['range']:.4f}"],
-                ["Varianza (S\u00B2)", f"{measures['variance']:.4f}"],
-                ["Desviaci\u00F3n Est\u00E1ndar (S)", f"{measures['std_dev']:.4f}"],
+                ["Rango", f"{measures['range']:.2f}"],
+                ["Varianza (S\u00B2)", f"{measures['variance']:.2f}"],
+                ["Desviaci\u00F3n Est\u00E1ndar (S)", f"{measures['std_dev']:.2f}"],
                 ["Coef. Variaci\u00F3n (CV%)", f"{measures['cv']:.2f}%"],
             ])
 
@@ -512,20 +512,20 @@ class DatasetAnalysisView(ctk.CTkFrame):
             self.results_area.add_table(
                 ["Medida", "Valor", "Medida", "Valor", "Medida", "Valor"],
                 [
-                    ["Q\u2081", f"{measures['Q1']:.4f}", "D\u2081", f"{measures['D1']:.4f}",
-                     "P\u2081\u2080", f"{measures['P10']:.4f}"],
-                    ["Q\u2082 (Mediana)", f"{measures['Q2']:.4f}", "D\u2085", f"{measures['D5']:.4f}",
-                     "P\u2082\u2085", f"{measures['P25']:.4f}"],
-                    ["Q\u2083", f"{measures['Q3']:.4f}", "D\u2089", f"{measures['D9']:.4f}",
-                     "P\u2085\u2080", f"{measures['P50']:.4f}"],
-                    ["\u2014", "\u2014", "\u2014", "\u2014", "P\u2087\u2085", f"{measures['P75']:.4f}"],
-                    ["\u2014", "\u2014", "\u2014", "\u2014", "P\u2089\u2080", f"{measures['P90']:.4f}"],
+                    ["Q\u2081", f"{measures['Q1']:.2f}", "D\u2081", f"{measures['D1']:.2f}",
+                     "P\u2081\u2080", f"{measures['P10']:.2f}"],
+                    ["Q\u2082 (Mediana)", f"{measures['Q2']:.2f}", "D\u2085", f"{measures['D5']:.2f}",
+                     "P\u2082\u2085", f"{measures['P25']:.2f}"],
+                    ["Q\u2083", f"{measures['Q3']:.2f}", "D\u2089", f"{measures['D9']:.2f}",
+                     "P\u2085\u2080", f"{measures['P50']:.2f}"],
+                    ["\u2014", "\u2014", "\u2014", "\u2014", "P\u2087\u2085", f"{measures['P75']:.2f}"],
+                    ["\u2014", "\u2014", "\u2014", "\u2014", "P\u2089\u2080", f"{measures['P90']:.2f}"],
                 ])
 
             self.results_area.add_subtitle(_("dataset.shape"))
             self.results_area.add_table(["Medida", "Valor"], [
-                ["Coef. Asimetr\u00EDa (g\u2081)", f"{measures['skewness']:.4f}"],
-                ["Coef. Curtosis (g\u2082)", f"{measures['kurtosis']:.4f}"],
+                ["Coef. Asimetr\u00EDa (g\u2081)", f"{measures['skewness']:.2f}"],
+                ["Coef. Curtosis (g\u2082)", f"{measures['kurtosis']:.2f}"],
             ])
 
             skew = measures["skewness"]
@@ -571,6 +571,11 @@ class DatasetAnalysisView(ctk.CTkFrame):
                 }
                 self.results_area.add_subtitle(titles.get(chart_key, chart_key))
                 self.results_area.add_chart(chart_bytes, width=540, height=330)
+            if var_type.startswith("cualitativa") and freq_result.get("unique_values", 0) > 8:
+                self.results_area.add_subtitle("Gr\u00E1fico de Sectores")
+                self.results_area.add_text(
+                    "Alta cardinalidad: Gr\u00E1fico de sectores omitido para mantener la legibilidad."
+                )
 
     def export_report(self):
         if self.controller.df is None:

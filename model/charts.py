@@ -185,7 +185,8 @@ class ChartGenerator:
 
         if var_type.startswith("cualitativa"):
             charts["bar"] = ChartGenerator.bar_chart(freq_result, var_name)
-            charts["pie"] = ChartGenerator.pie_chart(freq_result, var_name)
+            if freq_result.get("unique_values", len(freq_result["table"])) <= 8:
+                charts["pie"] = ChartGenerator.pie_chart(freq_result, var_name)
         elif var_type == "cuantitativa_discreta":
             charts["bar_ogive"] = ChartGenerator.discrete_bar_chart(freq_result, var_name)
         else:

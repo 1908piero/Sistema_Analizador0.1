@@ -206,6 +206,9 @@ $(function () {
                 html += '</div></div>';
             });
             html += '</div></div>';
+            if (data.var_type && data.var_type.startsWith('cualitativa') && data.freq_table && data.freq_table.unique_values > 8) {
+                html += '<div class="results-section mt-3"><h6>Gráfico de Sectores</h6><p class="text-muted">Alta cardinalidad: Gráfico de sectores omitido para mantener la legibilidad.</p></div>';
+            }
         }
 
         html += '</div>';
@@ -254,7 +257,7 @@ $(function () {
     }
 
     function fmt(val) {
-        if (typeof val === 'number') return val.toFixed(4);
+        if (typeof val === 'number') return val.toFixed(2);
         return String(val);
     }
 
