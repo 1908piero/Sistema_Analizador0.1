@@ -4,25 +4,98 @@
 {% endblock %}
 {% block content %}
 <div class="container-fluid p-4">
-    <div class="row justify-content-center mt-5">
+    <div class="row justify-content-center mt-4">
         <div class="col-lg-6 col-xl-5">
-            <div class="card" style="border-radius: 20px;">
-                <div class="card-body text-center p-5">
-                    <i class="fas fa-star fa-4x" style="color: #f59e0b; margin-bottom: 16px;"></i>
-                    <h3 style="font-weight: 700; margin-bottom: 12px;">{{ _('nav.rate') }}</h3>
-                    <p class="text-secondary" style="font-size: 15px; margin-bottom: 24px;">
-                        ¿Te gusta la aplicación? Déjanos tu opinión para seguir mejorando.
-                    </p>
-                    <p class="text-muted" style="font-size: 13px;">
-                        Próximamente disponible en Google Play y App Store.
-                    </p>
-                    <hr class="my-4">
-                    <small class="text-muted">
-                        <i class="fas fa-envelope me-2"></i>yhojan.piero18@gmail.com
-                    </small>
+            <div class="rate-card">
+                <div class="rate-header">
+                    <img src="{{ url_for('static', filename='logo.jpeg') }}" alt="Logo" class="rate-logo">
+                    <h3 class="rate-title">Estadística ANOVA RL</h3>
+                    <p class="rate-subtitle">Califícanos</p>
+                </div>
+
+                <p class="rate-question">¿Qué te parece la aplicación?</p>
+
+                <div class="stars-container" id="stars-container">
+                    <i class="fas fa-star star" data-value="1"></i>
+                    <i class="fas fa-star star" data-value="2"></i>
+                    <i class="fas fa-star star" data-value="3"></i>
+                    <i class="fas fa-star star" data-value="4"></i>
+                    <i class="fas fa-star star" data-value="5"></i>
+                </div>
+
+                <div class="rate-feedback" id="rate-feedback">Selecciona una calificación</div>
+
+                <textarea class="rate-textarea" id="rate-comment" placeholder="Déjanos tus comentarios para seguir mejorando..." rows="4"></textarea>
+
+                <button class="btn btn-primary w-100" id="rate-submit">
+                    <i class="fas fa-paper-plane me-2"></i>Enviar Comentario
+                </button>
+
+                <div class="rate-thanks" id="rate-thanks" style="display:none;">
+                    <i class="fas fa-check-circle"></i>
+                    ¡Gracias por tu feedback!
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+$(function() {
+    var selectedRating = 0;
+
+    $('.star').on('mouseenter', function() {
+        var val = $(this).data('value');
+        $('.star').each(function() {
+            var v = $(this).data('value');
+            if (v <= val) {
+                $(this).removeClass('star-inactive').addClass('star-active');
+            } else {
+                $(this).removeClass('star-active').addClass('star-inactive');
+            }
+        });
+        var labels = ['', 'Malo', 'Regular', 'Bueno', 'Muy bueno', 'Excelente'];
+        $('#rate-feedback').text(labels[val] || '');
+    });
+
+    $('.star').on('mouseleave', function() {
+        $('.star').each(function() {
+            var v = $(this).data('value');
+            if (v <= selectedRating) {
+                $(this).removeClass('star-inactive').addClass('star-active');
+            } else {
+                $(this).removeClass('star-active').addClass('star-inactive');
+            }
+        });
+        var labels = ['', 'Malo', 'Regular', 'Bueno', 'Muy bueno', 'Excelente'];
+        $('#rate-feedback').text(selectedRating > 0 ? labels[selectedRating] : 'Selecciona una calificación');
+    });
+
+    $('.star').on('click', function() {
+        selectedRating = $(this).data('value');
+        $('.star').each(function() {
+            var v = $(this).data('value');
+            if (v <= selectedRating) {
+                $(this).removeClass('star-inactive').addClass('star-active');
+            } else {
+                $(this).removeClass('star-active').addClass('star-inactive');
+            }
+        });
+        var labels = ['', 'Malo', 'Regular', 'Bueno', 'Muy bueno', 'Excelente'];
+        $('#rate-feedback').text(labels[selectedRating] || '');
+    });
+
+    $('#rate-submit').on('click', function() {
+        if (selectedRating === 0) {
+            $('#rate-feedback').text('Por favor selecciona una calificación');
+            return;
+        }
+        $('#rate-submit').prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>Enviando...');
+        setTimeout(function() {
+            $('#rate-thanks').fadeIn();
+            $('#rate-submit').hide();
+        }, 800);
+    });
+});
+</script>
 {% endblock %}
