@@ -94,24 +94,6 @@ def api_analyze(var_name):
         return jsonify({'success': False, 'error': f'Tipo desconocido para "{var_name}".'})
 
     data = df[var_name]
-    n_total = len(data)
-    unique_count = int(data.nunique())
-
-    if var_type.startswith('cualitativa') and unique_count > 0.7 * n_total:
-        return jsonify({
-            'success': True,
-            'data': {
-                'var_name': var_name,
-                'var_type': var_type,
-                'n_null': int(data.isna().sum()),
-                'freq_table': None,
-                'measures': None,
-                'interpretation': None,
-                'charts': None,
-                'skipped_high_cardinality': True,
-                'n': n_total,
-            }
-        })
 
     freq_result = FrequencyAnalyzer.compute(data, var_type, var_name)
     if freq_result is None:
@@ -132,7 +114,6 @@ def api_analyze(var_name):
             'measures': _serialize_measures(measures),
             'interpretation': interpretation,
             'charts': _serialize_charts(charts),
-            'skipped_high_cardinality': False,
         }
     }
     return jsonify(result)

@@ -76,12 +76,6 @@ class DatasetController:
             df[col] = df[col].replace('nan', pd.NA)
         return df
 
-    @staticmethod
-    def _is_high_cardinality(var_type: str, unique_count: int, n_total: int) -> bool:
-        if var_type.startswith("cualitativa") and unique_count > 0.7 * n_total:
-            return True
-        return False
-
     def load_file(self, filepath: str) -> dict:
         if not os.path.exists(filepath):
             return {"success": False, "error": "El archivo no existe."}
@@ -203,21 +197,6 @@ class DatasetController:
             data = self.df[var_name]
 
             n_null = int(data.isna().sum())
-            n_total = len(data)
-
-            if self._is_high_cardinality(var_type, data.nunique(), n_total):
-                return {
-                    "success": True,
-                    "data": {
-                        "freq_result": None,
-                        "measures": None,
-                        "charts": None,
-                        "n_null": n_null,
-                        "var_type": var_type,
-                        "skipped_high_cardinality": True,
-                        "n": n_total,
-                    },
-                }
 
             freq_result = FrequencyAnalyzer.compute(data, var_type, var_name)
             if freq_result is None:
@@ -239,7 +218,6 @@ class DatasetController:
                     "charts": charts,
                     "n_null": n_null,
                     "var_type": var_type,
-                    "skipped_high_cardinality": False,
                 },
             }
         except Exception as e:
@@ -274,9 +252,6 @@ class DatasetController:
             vars_to_export = [var_name] if var_name else list(self.df.columns)
             for v in vars_to_export:
                 if v in self.freq_results:
-                    var_type = self.classification.get(v, "")
-                    if self._is_high_cardinality(var_type, self.df[v].nunique(), len(self.df)):
-                        continue
                     all_analyses.append({
                         "freq_result": self.freq_results.get(v),
                         "measures": self.measures_results.get(v),

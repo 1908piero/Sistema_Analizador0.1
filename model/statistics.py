@@ -16,19 +16,15 @@ class VariableClassifier:
             total = len(col_data)
             raw_dtype = col_data.dtype
 
-            if pd.api.types.is_object_dtype(raw_dtype) or pd.api.types.is_string_dtype(raw_dtype):
+            if pd.api.types.is_float_dtype(raw_dtype):
+                classification[col] = "cuantitativa_continua"
+            elif pd.api.types.is_integer_dtype(raw_dtype):
+                classification[col] = "cuantitativa_discreta"
+            elif pd.api.types.is_object_dtype(raw_dtype) or pd.api.types.is_string_dtype(raw_dtype):
                 if unique_count <= 8:
-                    classification[col] = "cualitativa_nominal"
-                elif unique_count > 0.7 * total:
                     classification[col] = "cualitativa_nominal"
                 else:
                     classification[col] = "cualitativa_ordinal"
-            elif pd.api.types.is_numeric_dtype(raw_dtype):
-                ratio = unique_count / total if total > 0 else 1
-                if ratio < 0.15 or unique_count <= 12:
-                    classification[col] = "cuantitativa_discreta"
-                else:
-                    classification[col] = "cuantitativa_continua"
             else:
                 classification[col] = "desconocido"
         return classification

@@ -84,20 +84,6 @@ $(function () {
     }
 
     function renderAnalysis(container, data) {
-        if (data.skipped_high_cardinality) {
-            var html = '<div class="analysis-results">';
-            html += '<div class="d-flex align-items-center justify-content-between mb-3">';
-            html += '<h4 class="mb-0"><i class="fas fa-chart-bar me-2 text-primary"></i>' + escHtml(data.var_name) + '</h4>';
-            html += '<span class="var-badge badge-qual-nom">Cual. Nominal (Alta Cardinalidad)</span>';
-            html += '</div>';
-            html += '<p class="text-muted small">n = ' + data.n + ' observaciones' + (data.n_null > 0 ? ' (' + data.n_null + ' valores perdidos)' : '') + '</p>';
-            html += '<div class="results-section">';
-            html += '<p class="text-muted">Variable con alta cardinalidad (identificador único). Se omite la tabla de frecuencias y gráficos para mantener el rendimiento.</p>';
-            html += '</div></div>';
-            container.html(html);
-            return;
-        }
-
         var html = '<div class="analysis-results">';
 
         // Variable header
@@ -220,9 +206,6 @@ $(function () {
                 html += '</div></div>';
             });
             html += '</div></div>';
-            if (data.var_type && data.var_type.startsWith('cualitativa') && data.freq_table && data.freq_table.unique_values > 8) {
-                html += '<div class="results-section mt-3"><h6>Gráfico de Sectores</h6><p class="text-muted">Alta cardinalidad: Gráfico de sectores omitido para mantener la legibilidad.</p></div>';
-            }
         }
 
         html += '</div>';

@@ -57,7 +57,8 @@ class ChartGenerator:
                     str(int(val)), ha="center", va="bottom", fontsize=8)
 
         ax.set_xticks(x_pos)
-        ax.set_xticklabels(values, rotation=30, ha="right", fontsize=7)
+        rot = 90 if len(values) > 8 else 45
+        ax.set_xticklabels(values, rotation=rot, ha="right", fontsize=7)
         ChartGenerator._configure_axes(ax, f"Distribución de {var_name} (n={n})", var_name, "Frecuencia absoluta")
         fig.tight_layout()
         return ChartGenerator._fig_to_bytes(fig)
@@ -69,18 +70,15 @@ class ChartGenerator:
         values = table.iloc[:, 0].astype(str)
         fi = table["fi"].values
 
-        if len(values) > 6:
-            values, fi = ChartGenerator._limit_categories(values, fi, max_cat=6)
+        if len(values) > 8:
+            values, fi = ChartGenerator._limit_categories(values, fi, max_cat=8)
 
         fig, ax = plt.subplots(figsize=(7, 5))
-        if len(values) > 6:
+        if len(values) > 8:
             wedges, texts, autotexts = ax.pie(
-                fi, labels=None, autopct="%1.1f%%",
+                fi, labels=None, autopct=None,
                 startangle=90, colors=sns.color_palette("deep", len(values)),
-                textprops={"fontsize": 8},
             )
-            for t in autotexts:
-                t.set_fontsize(7)
             ax.legend(wedges, values, loc="center left", bbox_to_anchor=(1, 0.5),
                       fontsize=7, title_fontsize=8, framealpha=0.8)
         else:
@@ -185,8 +183,7 @@ class ChartGenerator:
 
         if var_type.startswith("cualitativa"):
             charts["bar"] = ChartGenerator.bar_chart(freq_result, var_name)
-            if freq_result.get("unique_values", len(freq_result["table"])) <= 8:
-                charts["pie"] = ChartGenerator.pie_chart(freq_result, var_name)
+            charts["pie"] = ChartGenerator.pie_chart(freq_result, var_name)
         elif var_type == "cuantitativa_discreta":
             charts["bar_ogive"] = ChartGenerator.discrete_bar_chart(freq_result, var_name)
         else:
