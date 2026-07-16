@@ -55,6 +55,39 @@
     var labels = ['', 'Malo', 'Regular', 'Bueno', 'Muy bueno', 'Excelente'];
     var STORAGE_KEY = 'app_reviews';
 
+    function apiGetReviews(callback) {
+        fetch('/api/feedback')
+            .then(function(r) { return r.json(); })
+            .then(function(data) { callback(data); })
+            .catch(function() {
+                try { callback(JSON.parse(localStorage.getItem(STORAGE_KEY)) || []); }
+                catch(e) { callback([]); }
+            });
+    }
+
+    function apiSaveReview(rating, commentText, dateStr, callback) {
+        fetch('/api/feedback', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ rating: rating, comment: commentText, date: dateStr })
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(resp) {
+            if (resp.success && callback) callback();
+            var existing = [];
+            try { existing = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch(e) {}
+            existing.push({ rating: rating, comment: commentText, date: dateStr });
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(existing));
+        })
+        .catch(function() {
+            var existing = [];
+            try { existing = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch(e) {}
+            existing.push({ rating: rating, comment: commentText, date: dateStr });
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(existing));
+            if (callback) callback();
+        });
+    }
+
     function updateStars(val) {
         for (var i = 0; i < stars.length; i++) {
             var v = parseInt(stars[i].getAttribute('data-value'));
@@ -115,21 +148,17 @@
         }, 3000);
     }
 
-    function loadReviews() {
-        try {
-            return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-        } catch(e) { return []; }
-    }
-
-    function saveReview(rating, commentText, dateStr) {
-        var existing = loadReviews();
-        existing.push({ rating: rating, comment: commentText, date: dateStr });
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(existing));
-        renderReviews(existing);
-    }
-
     function startListener() {
-        renderReviews(loadReviews());
+        apiGetReviews(function(data) {
+            if (data.length > 0) {
+                renderReviews(data);
+            } else {
+                try {
+                    var local = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+                    renderReviews(local);
+                } catch(e) { renderReviews([]); }
+            }
+        });
     }
 
     for (var i = 0; i < stars.length; i++) {
@@ -154,7 +183,9 @@
             feedback.textContent = 'Por favor selecciona una calificación';
             return;
         }
-        saveReview(userRating, commentEl.value, formatDate(new Date()));
+        var ratingVal = userRating;
+        var commentVal = commentEl.value;
+        var dateStr = formatDate(new Date());
         userRating = 0;
         updateStars(0);
         commentEl.value = '';
@@ -162,6 +193,9 @@
         showToast('Reseña guardada con éxito', 'success');
         confirmMsg.classList.add('show');
         setTimeout(function() { confirmMsg.classList.remove('show'); }, 3000);
+        apiSaveReview(ratingVal, commentVal, dateStr, function() {
+            apiGetReviews(function(data) { renderReviews(data); });
+        });
     });
 
     startListener();

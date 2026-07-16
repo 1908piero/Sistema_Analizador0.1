@@ -241,7 +241,7 @@ def api_feedback():
             if os.path.exists(FEEDBACK_FILE):
                 with open(FEEDBACK_FILE, 'r', encoding='utf-8') as f:
                     feedbacks = json.load(f)
-            return jsonify(list(reversed(feedbacks)))
+            return jsonify(feedbacks)
         except Exception as e:
             return jsonify([])
     try:
