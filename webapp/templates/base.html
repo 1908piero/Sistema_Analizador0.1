@@ -54,7 +54,7 @@
                 <a href="{{ url_for('main.index') }}" class="sidebar-logo">
                     <img src="{{ url_for('static', filename='logo.jpeg') }}" alt="Logo">
                 </a>
-                <button class="sidebar-toggle" id="sidebarToggle" title="Toggle sidebar">
+                <button class="sidebar-toggle" id="sidebarToggle" title="Toggle sidebar" onclick="toggleSidebar()">
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                         <path d="M6 3L11 8L6 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
@@ -113,6 +113,14 @@
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     <script>
+    function toggleSidebar() {
+        var sidebar = document.getElementById('desktopSidebar');
+        sidebar.classList.toggle('collapsed');
+        sidebar.classList.toggle('expanded');
+        var isCollapsed = sidebar.classList.contains('collapsed');
+        localStorage.setItem('sidebar_collapsed', isCollapsed);
+    }
+
     $(function() {
         var menuToggle = $('#menuToggle');
         var mobileMenu = $('#mobileMenu');
@@ -125,14 +133,15 @@
         overlay.on('click', toggleMenu);
         mobileMenu.find('a').on('click', toggleMenu);
 
-        var sidebar = $('#desktopSidebar');
-        var sidebarToggle = $('#sidebarToggle');
-        var collapsed = localStorage.getItem('sidebar_collapsed') === 'true';
-        if (collapsed) sidebar.addClass('collapsed');
-        sidebarToggle.on('click', function() {
-            sidebar.toggleClass('collapsed');
-            localStorage.setItem('sidebar_collapsed', sidebar.hasClass('collapsed'));
-        });
+        var sidebar = document.getElementById('desktopSidebar');
+        var isCollapsed = localStorage.getItem('sidebar_collapsed') === 'true';
+        if (isCollapsed) {
+            sidebar.classList.add('collapsed');
+            sidebar.classList.remove('expanded');
+        } else {
+            sidebar.classList.add('expanded');
+            sidebar.classList.remove('collapsed');
+        }
     });
     </script>
 </body>
