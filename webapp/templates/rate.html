@@ -3,19 +3,7 @@
 <h6 class="top-bar-title">Reseñas</h6>
 {% endblock %}
 {% block content %}
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
-<!--
-REGLAS DE SEGURIDAD PARA FIREBASE REALTIME DATABASE (Consola Firebase -> Realtime Database -> Reglas):
-{
-  "rules": {
-    "reviews": {
-      ".read": true,
-      ".write": true
-    }
-  }
-}
--->
+
 
 <div class="container-fluid p-4">
     <div class="row justify-content-center">
@@ -66,24 +54,6 @@ REGLAS DE SEGURIDAD PARA FIREBASE REALTIME DATABASE (Consola Firebase -> Realtim
     var confirmMsg = document.getElementById('rate-confirm');
     var labels = ['', 'Malo', 'Regular', 'Bueno', 'Muy bueno', 'Excelente'];
     var STORAGE_KEY = 'app_reviews';
-    var useFirebase = false;
-    var reviewsRef = null;
-
-    try {
-        var fbApp = firebase.initializeApp({
-            apiKey: "AIzaSyDemo123456789",
-            authDomain: "tu-proyecto.firebaseapp.com",
-            databaseURL: "https://tu-proyecto-default-rtdb.firebaseio.com",
-            projectId: "tu-proyecto",
-            storageBucket: "tu-proyecto.appspot.com",
-            messagingSenderId: "000000000000",
-            appId: "1:000000000000:web:0000000000000000"
-        });
-        reviewsRef = firebase.database(fbApp).ref('reviews');
-        useFirebase = true;
-    } catch (e) {
-        console.warn('Firebase no disponible, usando localStorage.');
-    }
 
     function updateStars(val) {
         for (var i = 0; i < stars.length; i++) {
@@ -145,41 +115,21 @@ REGLAS DE SEGURIDAD PARA FIREBASE REALTIME DATABASE (Consola Firebase -> Realtim
         }, 3000);
     }
 
-    function startListener() {
-        if (useFirebase) {
-            reviewsRef.on('value', function(snapshot) {
-                var data = snapshot.val();
-                var arr = [];
-                for (var key in data) {
-                    if (data.hasOwnProperty(key)) {
-                        arr.push(data[key]);
-                    }
-                }
-                renderReviews(arr);
-            });
-        } else {
-            try {
-                var data = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-                renderReviews(data);
-            } catch(e) {
-                renderReviews([]);
-            }
-        }
+    function loadReviews() {
+        try {
+            return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+        } catch(e) { return []; }
     }
 
-    function submitReview(rating, commentText, dateStr) {
-        var entry = { rating: rating, comment: commentText, date: dateStr };
-        if (useFirebase) {
-            reviewsRef.push(entry);
-        } else {
-            var existing = [];
-            try {
-                existing = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-            } catch(e) {}
-            existing.push(entry);
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(existing));
-            renderReviews(existing);
-        }
+    function saveReview(rating, commentText, dateStr) {
+        var existing = loadReviews();
+        existing.push({ rating: rating, comment: commentText, date: dateStr });
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(existing));
+        renderReviews(existing);
+    }
+
+    function startListener() {
+        renderReviews(loadReviews());
     }
 
     for (var i = 0; i < stars.length; i++) {
@@ -204,7 +154,7 @@ REGLAS DE SEGURIDAD PARA FIREBASE REALTIME DATABASE (Consola Firebase -> Realtim
             feedback.textContent = 'Por favor selecciona una calificación';
             return;
         }
-        submitReview(userRating, commentEl.value, formatDate(new Date()));
+        saveReview(userRating, commentEl.value, formatDate(new Date()));
         userRating = 0;
         updateStars(0);
         commentEl.value = '';
