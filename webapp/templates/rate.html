@@ -91,10 +91,20 @@ $(function() {
             return;
         }
         $('#rate-submit').prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>Enviando...');
-        setTimeout(function() {
-            $('#rate-thanks').fadeIn();
-            $('#rate-submit').hide();
-        }, 800);
+        $.ajax({
+            url: '{{ url_for("main.api_feedback") }}',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ rating: selectedRating, comment: $('#rate-comment').val() }),
+            success: function() {
+                $('#rate-thanks').fadeIn();
+                $('#rate-submit').hide();
+            },
+            error: function() {
+                $('#rate-feedback').text('Error al enviar. Intenta de nuevo.');
+                $('#rate-submit').prop('disabled', false).html('<i class="fas fa-paper-plane me-2"></i>Enviar Comentario');
+            }
+        });
     });
 });
 </script>
