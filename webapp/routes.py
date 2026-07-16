@@ -189,8 +189,17 @@ FEEDBACK_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__fi
 FEEDBACK_FILE = os.path.join(FEEDBACK_DIR, 'feedback_data.json')
 
 
-@main_bp.route('/api/feedback', methods=['POST'])
+@main_bp.route('/api/feedback', methods=['GET', 'POST'])
 def api_feedback():
+    if request.method == 'GET':
+        try:
+            feedbacks = []
+            if os.path.exists(FEEDBACK_FILE):
+                with open(FEEDBACK_FILE, 'r', encoding='utf-8') as f:
+                    feedbacks = json.load(f)
+            return jsonify(list(reversed(feedbacks)))
+        except Exception as e:
+            return jsonify([])
     try:
         data = request.get_json()
         rating = data.get('rating')

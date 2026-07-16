@@ -2,7 +2,7 @@
 {% block top_bar_left %}{% endblock %}
 {% block content %}
 <div class="container-fluid p-4">
-    <div class="row justify-content-center mt-4">
+    <div class="row justify-content-center">
         <div class="col-lg-6 col-xl-5">
             <div class="rate-card">
                 <div class="rate-header">
@@ -26,13 +26,13 @@
                 <textarea class="rate-textarea" id="rate-comment" placeholder="Déjanos tus comentarios para seguir mejorando..." rows="4"></textarea>
 
                 <button class="btn btn-primary w-100" id="rate-submit">
-                    <i class="fas fa-paper-plane me-2"></i>Enviar
+                    <i class="fas fa-paper-plane me-2"></i>Enviar Comentario
                 </button>
+            </div>
 
-                <div class="rate-thanks" id="rate-thanks" style="display:none;">
-                    <i class="fas fa-check-circle"></i>
-                    Gracias por tu opinión, hemos guardado tu comentario
-                </div>
+            <div class="review-wall" id="review-wall">
+                <div class="review-wall-title">Reseñas</div>
+                <div id="review-list"></div>
             </div>
         </div>
     </div>
@@ -45,7 +45,8 @@
     var feedback = document.getElementById('rate-feedback');
     var comment = document.getElementById('rate-comment');
     var submitBtn = document.getElementById('rate-submit');
-    var thanks = document.getElementById('rate-thanks');
+    var reviewList = document.getElementById('review-list');
+    var months = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
     var labels = ['', 'Malo', 'Regular', 'Bueno', 'Muy bueno', 'Excelente'];
 
     function updateStars(val) {
@@ -59,6 +60,52 @@
                 stars[i].style.textShadow = 'none';
             }
         }
+    }
+
+    function formatDate(iso) {
+        var d = new Date(iso);
+        return d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+    }
+
+    function renderReviews(data) {
+        var html = '';
+        if (!data || data.length === 0) {
+            html = '<div class="review-empty"><i class="fas fa-star"></i>No hay reseñas aún. ¡Sé el primero!</div>';
+        } else {
+            for (var i = 0; i < data.length; i++) {
+                var r = data[i];
+                var starHtml = '';
+                for (var s = 1; s <= 5; s++) {
+                    starHtml += s <= r.rating ? '<i class="fas fa-star"></i>' : '<i class="far fa-star" style="color:rgba(255,255,255,0.15)"></i>';
+                }
+                html += '<div class="review-card">' +
+                    '<div class="review-card-header">' +
+                        '<div class="review-stars">' + starHtml + '</div>' +
+                        '<span class="review-date">' + formatDate(r.date) + '</span>' +
+                    '</div>' +
+                    '<div class="review-comment">' + escapeHtml(r.comment || '') + '</div>' +
+                '</div>';
+            }
+        }
+        reviewList.innerHTML = html;
+    }
+
+    function escapeHtml(text) {
+        var div = document.createElement('div');
+        div.appendChild(document.createTextNode(text));
+        return div.innerHTML;
+    }
+
+    function loadReviews() {
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', '{{ url_for("main.api_feedback") }}', true);
+        xhr.onload = function() {
+            if (xhr.status === 200) {
+                var data = JSON.parse(xhr.responseText);
+                renderReviews(data);
+            }
+        };
+        xhr.send();
     }
 
     for (var i = 0; i < stars.length; i++) {
@@ -90,25 +137,34 @@
         xhr.open('POST', '{{ url_for("main.api_feedback") }}', true);
         xhr.setRequestHeader('Content-Type', 'application/json');
         xhr.onload = function() {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-paper-plane me-2"></i>Enviar Comentario';
             if (xhr.status === 200) {
-                thanks.style.display = 'block';
-                submitBtn.style.display = 'none';
+                userRating = 0;
+                updateStars(0);
+                comment.value = '';
+                feedback.textContent = 'Gracias por tu opinión, hemos guardado tu comentario';
+                setTimeout(function() { feedback.textContent = ''; }, 3000);
+                loadReviews();
                 console.log('Feedback guardado en feedback_data.json');
             } else {
                 feedback.textContent = 'Error al enviar. Intenta de nuevo.';
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = '<i class="fas fa-paper-plane me-2"></i>Enviar';
                 console.log('Error al guardar feedback:', xhr.responseText);
             }
         };
         xhr.onerror = function() {
             feedback.textContent = 'Gracias por tu opinión, hemos guardado tu comentario';
-            thanks.style.display = 'block';
-            submitBtn.style.display = 'none';
+            userRating = 0;
+            updateStars(0);
+            comment.value = '';
+            setTimeout(function() { feedback.textContent = ''; }, 3000);
+            loadReviews();
             console.log('No se pudo escribir en feedback_data.json, pero el proceso se completó.');
         };
         xhr.send(JSON.stringify({ rating: userRating, comment: comment.value }));
     });
+
+    loadReviews();
 })();
 </script>
 {% endblock %}
