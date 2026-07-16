@@ -1400,6 +1400,7 @@ body {
 .star {
     transition: color 0.15s ease, transform 0.15s ease;
     color: rgba(255,255,255,0.1);
+    cursor: pointer;
 }
 
 .star:hover {
@@ -1538,6 +1539,27 @@ body {
     margin-bottom: 12px;
     opacity: 0.4;
 }
+
+/* Toast notifications */
+.app-toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 14px 28px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    z-index: 9999;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+    pointer-events: none;
+}
+.app-toast.show { opacity: 1; }
+.app-toast.success { background: #10b981; color: #fff; }
+.app-toast.error { background: #ef4444; color: #fff; }
 
 /* Spinner colors */
 .spinner-border.text-primary {

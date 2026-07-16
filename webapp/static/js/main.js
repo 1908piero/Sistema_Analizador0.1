@@ -1,3 +1,16 @@
+function showToast(msg, type) {
+    type = type || 'success';
+    var el = document.createElement('div');
+    el.className = 'app-toast ' + type;
+    el.textContent = msg;
+    document.body.appendChild(el);
+    requestAnimationFrame(function() { el.classList.add('show'); });
+    setTimeout(function() {
+        el.classList.remove('show');
+        setTimeout(function() { el.remove(); }, 400);
+    }, 3000);
+}
+
 $(function () {
     // File upload drag & drop
     var dropZone = $('#drop-zone');

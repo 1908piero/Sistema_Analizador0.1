@@ -50,6 +50,7 @@ def upload():
     session['filename'] = file.filename
     session['n_rows'] = len(df)
     session['n_cols'] = len(df.columns)
+    session['upload_ok'] = True
 
     return redirect(url_for('main.analysis'))
 

@@ -1,5 +1,7 @@
 {% extends "base.html" %}
-{% block top_bar_left %}{% endblock %}
+{% block top_bar_left %}
+<h6 class="top-bar-title">Procesar Dataset</h6>
+{% endblock %}
 {% block content %}
 <div class="analysis-layout">
     <aside class="variable-sidebar">
@@ -65,6 +67,10 @@
     </div>
 </div>
 
+{% if session.pop('upload_ok', None) %}
+<div id="upload-toast-trigger" data-msg="Dataset cargado exitosamente: {{ filename }}" style="display:none;"></div>
+{% endif %}
+
 <div class="modal fade" id="summary-modal" tabindex="-1">
     <div class="modal-dialog modal-xl">
         <div class="modal-content">
@@ -81,4 +87,12 @@
         </div>
     </div>
 </div>
+<script>
+$(function() {
+    var trigger = $('#upload-toast-trigger');
+    if (trigger.length) {
+        showToast(trigger.data('msg'), 'success');
+    }
+});
+</script>
 {% endblock %}

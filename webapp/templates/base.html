@@ -89,14 +89,7 @@
                 <div class="top-bar-left">
                     {% block top_bar_left %}{% endblock %}
                 </div>
-                <div class="top-bar-right">
-                    <div class="top-avatar">
-                        <img src="{{ url_for('static', filename='logo.jpeg') }}" alt="Logo" class="top-bar-logo">
-                    </div>
-                    <div class="top-user-icon">
-                        <i class="fas fa-user-circle"></i>
-                    </div>
-                </div>
+                <div class="top-bar-right"></div>
             </div>
             <div class="content-area">
                 {% block content %}{% endblock %}

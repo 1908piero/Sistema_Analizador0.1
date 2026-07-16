@@ -1,5 +1,7 @@
 {% extends "base.html" %}
-{% block top_bar_left %}{% endblock %}
+{% block top_bar_left %}
+<h6 class="top-bar-title">Reseñas</h6>
+{% endblock %}
 {% block content %}
 <div class="container-fluid p-4">
     <div class="row justify-content-center">
@@ -46,8 +48,8 @@
     var comment = document.getElementById('rate-comment');
     var submitBtn = document.getElementById('rate-submit');
     var reviewList = document.getElementById('review-list');
-    var months = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
     var labels = ['', 'Malo', 'Regular', 'Bueno', 'Muy bueno', 'Excelente'];
+    var STORAGE_KEY = 'app_reviews';
 
     function updateStars(val) {
         for (var i = 0; i < stars.length; i++) {
@@ -62,14 +64,26 @@
         }
     }
 
-    function formatDate(iso) {
-        var d = new Date(iso);
+    function formatDate(d) {
+        var months = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
         return d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
     }
 
-    function renderReviews(data) {
+    function getReviews() {
+        try {
+            return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+        } catch(e) { return []; }
+    }
+
+    function saveReviews(arr) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
+    }
+
+    function renderReviews() {
+        var data = getReviews();
+        data.reverse();
         var html = '';
-        if (!data || data.length === 0) {
+        if (data.length === 0) {
             html = '<div class="review-empty"><i class="fas fa-star"></i>No hay reseñas aún. ¡Sé el primero!</div>';
         } else {
             for (var i = 0; i < data.length; i++) {
@@ -81,7 +95,7 @@
                 html += '<div class="review-card">' +
                     '<div class="review-card-header">' +
                         '<div class="review-stars">' + starHtml + '</div>' +
-                        '<span class="review-date">' + formatDate(r.date) + '</span>' +
+                        '<span class="review-date">' + r.date + '</span>' +
                     '</div>' +
                     '<div class="review-comment">' + escapeHtml(r.comment || '') + '</div>' +
                 '</div>';
@@ -96,16 +110,16 @@
         return div.innerHTML;
     }
 
-    function loadReviews() {
-        var xhr = new XMLHttpRequest();
-        xhr.open('GET', '{{ url_for("main.api_feedback") }}', true);
-        xhr.onload = function() {
-            if (xhr.status === 200) {
-                var data = JSON.parse(xhr.responseText);
-                renderReviews(data);
-            }
-        };
-        xhr.send();
+    function showToast(msg) {
+        var toast = document.createElement('div');
+        toast.textContent = msg;
+        toast.style.cssText = 'position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:#10b981;color:#fff;padding:14px 28px;border-radius:10px;font-size:14px;font-weight:600;z-index:9999;box-shadow:0 8px 30px rgba(0,0,0,0.3);opacity:0;transition:opacity 0.3s ease;font-family:Inter,sans-serif;';
+        document.body.appendChild(toast);
+        requestAnimationFrame(function() { toast.style.opacity = '1'; });
+        setTimeout(function() {
+            toast.style.opacity = '0';
+            setTimeout(function() { toast.remove(); }, 400);
+        }, 3000);
     }
 
     for (var i = 0; i < stars.length; i++) {
@@ -130,41 +144,22 @@
             feedback.textContent = 'Por favor selecciona una calificación';
             return;
         }
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Enviando...';
-
-        var xhr = new XMLHttpRequest();
-        xhr.open('POST', '{{ url_for("main.api_feedback") }}', true);
-        xhr.setRequestHeader('Content-Type', 'application/json');
-        xhr.onload = function() {
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = '<i class="fas fa-paper-plane me-2"></i>Enviar Comentario';
-            if (xhr.status === 200) {
-                userRating = 0;
-                updateStars(0);
-                comment.value = '';
-                feedback.textContent = 'Gracias por tu opinión, hemos guardado tu comentario';
-                setTimeout(function() { feedback.textContent = ''; }, 3000);
-                loadReviews();
-                console.log('Feedback guardado en feedback_data.json');
-            } else {
-                feedback.textContent = 'Error al enviar. Intenta de nuevo.';
-                console.log('Error al guardar feedback:', xhr.responseText);
-            }
-        };
-        xhr.onerror = function() {
-            feedback.textContent = 'Gracias por tu opinión, hemos guardado tu comentario';
-            userRating = 0;
-            updateStars(0);
-            comment.value = '';
-            setTimeout(function() { feedback.textContent = ''; }, 3000);
-            loadReviews();
-            console.log('No se pudo escribir en feedback_data.json, pero el proceso se completó.');
-        };
-        xhr.send(JSON.stringify({ rating: userRating, comment: comment.value }));
+        var reviews = getReviews();
+        reviews.push({
+            rating: userRating,
+            comment: comment.value,
+            date: formatDate(new Date())
+        });
+        saveReviews(reviews);
+        userRating = 0;
+        updateStars(0);
+        comment.value = '';
+        feedback.textContent = '';
+        showToast('Gracias por tu opinión, hemos guardado tu comentario');
+        renderReviews();
     });
 
-    loadReviews();
+    renderReviews();
 })();
 </script>
 {% endblock %}
