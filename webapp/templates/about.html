@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block top_bar_left %}
+<h6 class="top-bar-title">{{ _('nav.about') }}</h6>
+{% endblock %}
+{% block content %}
+<div class="container-fluid p-4">
+    <div class="row justify-content-center mt-4">
+        <div class="col-lg-8 col-xl-6">
+            <div class="about-card">
+                <div class="about-logo">
+                    <img src="{{ url_for('static', filename='logounas.jpg') }}" alt="UNAS Logo">
+                </div>
+                <h3 class="about-title">{{ _('about.title') }}</h3>
+                <span class="about-version">{{ _('about.version') }}</span>
+
+                <hr class="my-4">
+
+                <div class="about-section">
+                    <p class="about-contact"><i class="fas fa-envelope me-2"></i>{{ _('about.contact') }}</p>
+                </div>
+
+                <div class="about-section">
+                    <p class="about-thanks">{{ _('about.thanks') }}</p>
+                </div>
+
+                <div class="about-section">
+                    <small class="about-tech">{{ _('about.tech') }}</small>
+                </div>
+
+                <hr class="my-4">
+
+                <div class="about-section">
+                    <h6 class="text-primary mb-2">{{ _('credits.institution') }}</h6>
+                    <p class="mb-1">{{ _('credits.unas') }}</p>
+                    <small class="text-muted">{{ _('credits.unas_sub') }}</small>
+                </div>
+
+                <div class="about-section">
+                    <h6 class="text-primary mb-2">{{ _('credits.career') }}</h6>
+                    <p>{{ _('credits.career_name') }}</p>
+                </div>
+
+                <div class="about-section">
+                    <h6 class="text-primary mb-2">{{ _('credits.course') }}</h6>
+                    <p>{{ _('credits.course_name') }}</p>
+                </div>
+
+                <div class="about-section">
+                    <h6 class="text-primary mb-2">{{ _('credits.teacher') }}</h6>
+                    <p>{{ _('credits.teacher_name') }}</p>
+                </div>
+
+                <div class="about-section">
+                    <h6 class="text-primary mb-2">{{ _('credits.developers') }}</h6>
+                    <p class="mb-1">{{ _('credits.dev1') }}</p>
+                    <p>{{ _('credits.dev2') }}</p>
+                </div>
+
+                <hr class="my-4">
+
+                <small class="about-rights">{{ _('about.rights') }}</small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

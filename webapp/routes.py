@@ -224,9 +224,21 @@ def api_reclassify():
     session['classification'] = classification
     return jsonify({'success': True})
 
+@main_bp.route('/about')
+def about():
+    return render_template('about.html', lang=current_lang())
+
+@main_bp.route('/privacy')
+def privacy():
+    return render_template('privacy.html', lang=current_lang())
+
+@main_bp.route('/rate')
+def rate():
+    return render_template('rate.html', lang=current_lang())
+
 @main_bp.route('/credits')
 def credits():
-    return render_template('credits.html', lang=current_lang())
+    return redirect(url_for('main.about'))
 
 @main_bp.route('/lang/<lang>')
 def set_lang(lang):

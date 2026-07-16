@@ -28,17 +28,20 @@
             <h5>{{ _('app.full_title') }}</h5>
         </div>
         <hr>
-        <a href="{{ url_for('main.index') }}" class="mobile-menu-item {% if request.endpoint == 'main.index' %}active{% endif %}">
-            <i class="fas fa-home"></i> {{ _('nav.home') }}
+        <a href="{{ url_for('main.sampling') }}" class="mobile-menu-item {% if request.endpoint == 'main.sampling' %}active{% endif %}">
+            <i class="fas fa-calculator"></i> {{ _('nav.sampling') }}
         </a>
         <a href="{{ url_for('main.analysis') }}" class="mobile-menu-item {% if request.endpoint == 'main.analysis' %}active{% endif %}">
             <i class="fas fa-table"></i> {{ _('nav.dataset') }}
         </a>
-        <a href="{{ url_for('main.sampling') }}" class="mobile-menu-item {% if request.endpoint == 'main.sampling' %}active{% endif %}">
-            <i class="fas fa-calculator"></i> {{ _('nav.sampling') }}
+        <a href="{{ url_for('main.rate') }}" class="mobile-menu-item {% if request.endpoint == 'main.rate' %}active{% endif %}">
+            <i class="fas fa-star"></i> {{ _('nav.rate') }}
         </a>
-        <a href="{{ url_for('main.credits') }}" class="mobile-menu-item {% if request.endpoint == 'main.credits' %}active{% endif %}">
-            <i class="fas fa-info-circle"></i> {{ _('nav.credits') }}
+        <a href="{{ url_for('main.about') }}" class="mobile-menu-item {% if request.endpoint == 'main.about' %}active{% endif %}">
+            <i class="fas fa-info-circle"></i> {{ _('nav.about') }}
+        </a>
+        <a href="{{ url_for('main.privacy') }}" class="mobile-menu-item {% if request.endpoint == 'main.privacy' %}active{% endif %}">
+            <i class="fas fa-shield-alt"></i> {{ _('nav.privacy') }}
         </a>
         <hr>
         <small class="text-muted" style="display:block;text-align:center;padding:8px;">{{ _('nav.export_hint') }}</small>
@@ -48,24 +51,27 @@
         <!-- Desktop sidebar (hidden on mobile) -->
         <aside class="sidebar" id="desktopSidebar">
             <div class="sidebar-header">
-                <div class="sidebar-logo">
+                <a href="{{ url_for('main.index') }}" class="sidebar-logo">
                     <img src="{{ url_for('static', filename='logo.jpeg') }}" alt="Logo">
-                </div>
+                </a>
                 <h5 class="sidebar-title">{{ _('app.full_title') }}</h5>
             </div>
             <hr class="sidebar-divider">
             <nav class="sidebar-nav">
-                <a href="{{ url_for('main.index') }}" class="nav-item {% if request.endpoint == 'main.index' %}active{% endif %}">
-                    <i class="fas fa-home"></i> {{ _('nav.home') }}
+                <a href="{{ url_for('main.sampling') }}" class="nav-item {% if request.endpoint == 'main.sampling' %}active{% endif %}">
+                    <i class="fas fa-calculator"></i> {{ _('nav.sampling') }}
                 </a>
                 <a href="{{ url_for('main.analysis') }}" class="nav-item {% if request.endpoint == 'main.analysis' %}active{% endif %}">
                     <i class="fas fa-table"></i> {{ _('nav.dataset') }}
                 </a>
-                <a href="{{ url_for('main.sampling') }}" class="nav-item {% if request.endpoint == 'main.sampling' %}active{% endif %}">
-                    <i class="fas fa-calculator"></i> {{ _('nav.sampling') }}
+                <a href="{{ url_for('main.rate') }}" class="nav-item {% if request.endpoint == 'main.rate' %}active{% endif %}">
+                    <i class="fas fa-star"></i> {{ _('nav.rate') }}
                 </a>
-                <a href="{{ url_for('main.credits') }}" class="nav-item {% if request.endpoint == 'main.credits' %}active{% endif %}">
-                    <i class="fas fa-info-circle"></i> {{ _('nav.credits') }}
+                <a href="{{ url_for('main.about') }}" class="nav-item {% if request.endpoint == 'main.about' %}active{% endif %}">
+                    <i class="fas fa-info-circle"></i> {{ _('nav.about') }}
+                </a>
+                <a href="{{ url_for('main.privacy') }}" class="nav-item {% if request.endpoint == 'main.privacy' %}active{% endif %}">
+                    <i class="fas fa-shield-alt"></i> {{ _('nav.privacy') }}
                 </a>
             </nav>
             <div class="sidebar-footer">
