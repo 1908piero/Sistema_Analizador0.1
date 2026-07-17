@@ -217,52 +217,6 @@ class ChartGenerator:
         return ChartGenerator._fig_to_bytes(fig)
 
     @staticmethod
-    def box_plot_chart(freq_result: dict, var_name: str) -> io.BytesIO:
-        table = freq_result["table"]
-        is_grouped = freq_result["is_grouped"]
-        n = freq_result["n"]
-
-        if is_grouped:
-            values = np.repeat(table["Xi"].values, table["fi"].values.astype(int))
-        else:
-            first_col = table.columns[0]
-            raw_series = pd.to_numeric(table[first_col], errors="coerce")
-            if raw_series.isna().any():
-                return None
-            values = np.repeat(raw_series.values, table["fi"].values.astype(int))
-
-        stats = {
-            "med": float(np.percentile(values, 50)),
-            "q1": float(np.percentile(values, 25)),
-            "q3": float(np.percentile(values, 75)),
-            "whislo": float(values.min()),
-            "whishi": float(values.max()),
-        }
-        iqr = stats["q3"] - stats["q1"]
-        stats["fliers"] = values[(values < stats["q1"] - 1.5 * iqr) | (values > stats["q3"] + 1.5 * iqr)].tolist()
-
-        fig, ax = plt.subplots(figsize=(7, 4))
-        fig.patch.set_facecolor("white")
-        ax.set_facecolor("white")
-
-        ax.bxp([stats], vert=True, widths=0.4, patch_artist=True,
-               boxprops={"facecolor": "#6366f1", "edgecolor": "black", "linewidth": 1.2},
-               whiskerprops={"color": "black", "linewidth": 1.2},
-               capprops={"color": "black", "linewidth": 1.2},
-               medianprops={"color": "#f59e0b", "linewidth": 2},
-               flierprops={"marker": "o", "markerfacecolor": "#ef4444", "markersize": 5, "markeredgecolor": "#ef4444"})
-        ax.set_xticklabels([var_name], fontsize=10)
-        ax.set_ylabel("Valores", fontsize=10)
-        ax.set_title(f"Diagrama de caja y bigotes de {var_name} (n={n})", fontsize=11, fontweight="bold", color="black")
-        ax.tick_params(labelsize=8, colors="black")
-        ax.grid(axis="y", alpha=0.3, color="gray")
-        for spine in ax.spines.values():
-            spine.set_visible(True)
-            spine.set_edgecolor("black")
-        fig.tight_layout()
-        return ChartGenerator._fig_to_bytes(fig)
-
-    @staticmethod
     def generate_all_charts(freq_result: dict, var_name: str) -> dict:
         var_type = freq_result["var_type"]
         charts = {}
@@ -272,14 +226,8 @@ class ChartGenerator:
             charts["pie"] = ChartGenerator.pie_chart(freq_result, var_name)
         elif var_type == "cuantitativa_discreta":
             charts["bar_ogive"] = ChartGenerator.discrete_bar_chart(freq_result, var_name)
-            bp = ChartGenerator.box_plot_chart(freq_result, var_name)
-            if bp is not None:
-                charts["boxplot"] = bp
         else:
             charts["histogram"] = ChartGenerator.histogram_chart(freq_result, var_name)
             charts["freq_poly_ogive"] = ChartGenerator.freq_polygon_ogive_chart(freq_result, var_name)
-            bp = ChartGenerator.box_plot_chart(freq_result, var_name)
-            if bp is not None:
-                charts["boxplot"] = bp
 
         return charts

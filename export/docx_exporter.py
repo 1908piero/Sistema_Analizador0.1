@@ -323,6 +323,44 @@ class APA7Exporter:
             self._add_heading_apa(f"Análisis detallado de: {col}", level=1)
 
             self.export_frequency_table(freq_result, measures)
+
+            if measures.get("type") == "cualitativa":
+                mode_val = measures.get("mode", "N/A")
+                fi = 0
+                pct = 0.0
+                table = freq_result.get("table")
+                if table is not None and not table.empty:
+                    mode_row = table[table.iloc[:, 0].astype(str) == str(mode_val)]
+                    if not mode_row.empty:
+                        fi = int(mode_row["fi"].values[0])
+                        pct = float(mode_row["hi%"].values[0])
+                texto_interp = (
+                    f"Al observar la variable «{col}», se encontró que la "
+                    f"categoría que más se repite es «{mode_val}», con un total "
+                    f"de {fi} casos, lo que equivale al {pct:.2f}% del "
+                    f"conjunto de datos analizados."
+                )
+            else:
+                mean_v = measures["mean"]
+                std_v = measures["std_dev"]
+                med_v = measures["median"]
+                q3_v = measures.get("Q3", 0)
+                texto_interp = (
+                    f"Para la variable «{col}», el valor promedio obtenido es de "
+                    f"{mean_v:.2f}, con una dispersión típica de {std_v:.2f} "
+                    f"unidades alrededor de la media. La mitad de las "
+                    f"observaciones se sitúa por debajo de {med_v:.2f}, mientras "
+                    f"que tres cuartas partes de los datos no superan los "
+                    f"{q3_v:.2f}."
+                )
+
+            self._add_heading_apa("Interpretación", level=2)
+            p = self.doc.add_paragraph()
+            run = p.add_run(texto_interp)
+            run.font.name = APA_FONT
+            run.font.size = APA_SIZE
+            p.paragraph_format.space_after = Pt(8)
+
             if measures:
                 self.export_measures(measures, col)
 
@@ -335,41 +373,9 @@ class APA7Exporter:
                         "bar_ogive": f"Gráfico de barras con ojiva de {col}",
                         "histogram": f"Histograma de frecuencias de {col}",
                         "freq_poly_ogive": f"Polígono de frecuencias y ojiva de {col}",
-                        "boxplot": f"Diagrama de caja y bigotes de {col}",
                     }
                     self.export_chart(chart_bytes, titles.get(chart_key, f"Gráfico de {col}"))
                     self._add_note()
-
-            if measures.get("type") == "cualitativa":
-                mode_val = measures.get("mode", "N/A")
-                fi = 0
-                porcentaje = 0.0
-                table = freq_result.get("table")
-                if table is not None and not table.empty:
-                    mode_row = table[table.iloc[:, 0].astype(str) == str(mode_val)]
-                    if not mode_row.empty:
-                        fi = int(mode_row["fi"].values[0])
-                        porcentaje = float(mode_row["hi%"].values[0])
-                texto_interp = (
-                    f"La categoría predominante es '{mode_val}', con una frecuencia "
-                    f"absoluta de {fi} observaciones, lo que representa el "
-                    f"{porcentaje:.2f}% del total de la muestra analizada."
-                )
-            else:
-                texto_interp = (
-                    f"En promedio, el valor es {measures['mean']:.2f}, con los datos "
-                    f"desviándose de este promedio en {measures['std_dev']:.2f} unidades. "
-                    f"El 50% de la muestra se concentra por debajo de "
-                    f"{measures['median']:.2f}, mientras que el 75% reporta valores "
-                    f"menores o iguales a {measures.get('Q3', 0):.2f}."
-                )
-
-            self._add_heading_apa("Interpretación", level=2)
-            p = self.doc.add_paragraph()
-            run = p.add_run(texto_interp)
-            run.font.name = APA_FONT
-            run.font.size = APA_SIZE
-            p.paragraph_format.space_after = Pt(8)
 
             self.doc.add_page_break()
 

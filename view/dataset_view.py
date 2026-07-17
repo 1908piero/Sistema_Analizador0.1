@@ -569,7 +569,6 @@ class DatasetAnalysisView(ctk.CTkFrame):
                     "bar_ogive": _("charts.bar_ogive"),
                     "histogram": _("charts.histogram"),
                     "freq_poly_ogive": _("charts.freq_poly_ogive"),
-                    "boxplot": _("charts.boxplot"),
                 }
                 self.results_area.add_subtitle(titles.get(chart_key, chart_key))
                 self.results_area.add_chart(chart_bytes, width=540, height=330)

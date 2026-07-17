@@ -133,7 +133,6 @@
   "charts.bar_ogive": "Gráfico de Barras con Ojiva",
   "charts.histogram": "Histograma de Frecuencias",
   "charts.freq_poly_ogive": "Polígono de Frecuencias y Ojiva",
-  "charts.boxplot": "Diagrama de Caja y Bigotes",
 
   "measures.mean": "Media (X̄)",
   "measures.median": "Mediana (Me)",

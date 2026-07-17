@@ -375,10 +375,10 @@ class DatasetSummary:
                         fi_text = str(int(mode_row['fi'].values[0]))
                         pct_text = f"{mode_row['hi%'].values[0]:.1f}"
             return (
-                f"La categoría predominante es '{mode_val}', con una "
-                f"frecuencia absoluta de {fi_text} observaciones, "
-                f"representando el {pct_text}% del total de la "
-                f"muestra analizada."
+                f"Al observar la variable «{var_name}», se encontró que la "
+                f"categoría que más se repite es «{mode_val}», con un total "
+                f"de {fi_text} casos, lo que equivale al {pct_text}% del "
+                f"conjunto de datos analizados."
             )
 
         mean = measures["mean"]
@@ -392,67 +392,75 @@ class DatasetSummary:
         parts = []
 
         parts.append(
-            f"En promedio, el valor es {mean:.2f}. Los datos presentan "
-            f"una desviación estándar de {std:.2f} unidades respecto a "
-            f"este promedio. "
+            f"Para la variable «{var_name}», el valor promedio obtenido es de "
+            f"{mean:.2f}, con una dispersión típica de {std:.2f} unidades "
+            f"alrededor de la media. "
         )
 
         parts.append(
-            f"El 50% de las observaciones se concentra por debajo de "
-            f"{median:.2f}, mientras que el 75% reporta valores menores "
-            f"o iguales a {q3:.2f}. "
+            f"La mitad de las observaciones se sitúa por debajo de "
+            f"{median:.2f}, mientras que tres cuartas partes de los datos "
+            f"no superan los {q3:.2f}. "
         )
 
         if cv < 15:
             parts.append(
-                f"Los datos son bastante homogéneos (CV = {cv:.2f}%). "
+                f"Los datos presentan poca variabilidad entre sí "
+                f"(CV = {cv:.2f}%), lo que indica que son bastante "
+                f"homogéneos. "
             )
         elif cv > 25:
             parts.append(
-                f"Los datos son muy heterogéneos y dispersos "
-                f"(CV = {cv:.2f}%). "
+                f"Existe una alta dispersión en los datos "
+                f"(CV = {cv:.2f}%), lo que revela que son bastante "
+                f"heterogéneos. "
             )
         else:
             parts.append(
                 f"La variabilidad de los datos es moderada "
-                f"(CV = {cv:.2f}%). "
+                f"(CV = {cv:.2f}%), ni muy poca ni excesiva. "
             )
 
         diff = abs(mean - median)
         if diff < 0.5:
             parts.append(
-                f"La media y la mediana son muy cercanas, lo que indica una "
-                f"distribución aproximadamente simétrica "
+                f"La media y la mediana son prácticamente iguales, "
+                f"lo que sugiere una distribución simétrica de los datos "
                 f"(asimetría = {skew:.2f}). "
             )
         elif mean > median:
             parts.append(
-                f"La media supera a la mediana, evidenciando una asimetría "
-                f"positiva (asimetría = {skew:.2f}), con valores elevados "
-                f"que desplazan el promedio hacia la derecha. "
+                f"La media es mayor que la mediana, lo que indica una "
+                f"asimetría positiva (asimetría = {skew:.2f}); es decir, "
+                f"existen algunos valores altos que jalan el promedio "
+                f"hacia arriba. "
             )
         else:
             parts.append(
-                f"La mediana supera a la media, revelando una asimetría "
-                f"negativa (asimetría = {skew:.2f}), con valores reducidos "
-                f"que concentran el promedio hacia la izquierda. "
+                f"La mediana es mayor que la media, revelando una "
+                f"asimetría negativa (asimetría = {skew:.2f}); es decir, "
+                f"hay valores bajos que desplazan el promedio hacia abajo. "
             )
 
         if kurt > 0.5:
             parts.append(
-                f"En cuanto a la forma, la curtosis de {kurt:.2f} indica una "
-                f"distribución leptocúrtica, con un pico más pronunciado que "
-                f"la normal. "
+                f"En cuanto a la forma, la curtosis de {kurt:.2f} indica "
+                f"que la distribución es más puntiaguda que una campana "
+                f"normal (leptocúrtica), con los datos más concentrados "
+                f"en el centro. "
             )
         elif kurt < -0.5:
             parts.append(
-                f"Respecto a la forma, la curtosis de {kurt:.2f} revela una "
-                f"distribución platicúrtica, más aplanada que la normal. "
+                f"Respecto a la forma, la curtosis de {kurt:.2f} revela "
+                f"que la distribución es más aplanada que la normal "
+                f"(platicúrtica), con los datos más dispersos hacia los "
+                f"extremos. "
             )
         else:
             parts.append(
-                f"La curtosis de {kurt:.2f} sugiere una distribución "
-                f"mesocúrtica, con apuntamiento similar al de la normal. "
+                f"La curtosis de {kurt:.2f} sugiere que la forma de la "
+                f"distribución es similar a la de una campana normal "
+                f"(mesocúrtica). "
             )
 
         return "".join(parts)
