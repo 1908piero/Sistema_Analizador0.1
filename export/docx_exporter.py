@@ -6,9 +6,7 @@ from docx.oxml.ns import qn, nsdecls
 from docx.oxml import parse_xml
 import pandas as pd
 import io
-import matplotlib
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
+
 
 APA_FONT = "Times New Roman"
 APA_SIZE = Pt(12)
@@ -304,82 +302,76 @@ class APA7Exporter:
         from model.statistics import FrequencyAnalyzer, MeasuresCalculator, DatasetSummary
         from model.charts import ChartGenerator
 
-        plt.style.use("default")
-        ChartGenerator.white_bg = True
+        if sampling_result:
+            self.export_sampling(sampling_result)
+            self.doc.add_page_break()
 
-        try:
-            if sampling_result:
-                self.export_sampling(sampling_result)
-                self.doc.add_page_break()
+        self._add_title("Análisis del Dataset", level=0)
+        self.export_variable_classification(classification)
 
-            self._add_title("Análisis del Dataset", level=0)
-            self.export_variable_classification(classification)
+        for col in df.columns:
+            var_type = classification.get(col, None)
+            if var_type is None or var_type == "desconocido":
+                continue
 
-            for col in df.columns:
-                var_type = classification.get(col, None)
-                if var_type is None or var_type == "desconocido":
-                    continue
+            freq_result = FrequencyAnalyzer.compute(df[col], var_type, col)
+            if freq_result is None:
+                continue
+            measures = MeasuresCalculator.compute(freq_result)
+            charts = ChartGenerator.generate_all_charts(freq_result, col)
 
-                freq_result = FrequencyAnalyzer.compute(df[col], var_type, col)
-                if freq_result is None:
-                    continue
-                measures = MeasuresCalculator.compute(freq_result)
-                charts = ChartGenerator.generate_all_charts(freq_result, col)
+            self._add_heading_apa(f"Análisis detallado de: {col}", level=1)
 
-                self._add_heading_apa(f"Análisis detallado de: {col}", level=1)
+            self.export_frequency_table(freq_result, measures)
+            if measures:
+                self.export_measures(measures, col)
 
-                self.export_frequency_table(freq_result, measures)
-                if measures:
-                    self.export_measures(measures, col)
+            if charts:
+                self._add_heading_apa("Gráficos Estadísticos", level=2)
+                for chart_key, chart_bytes in charts.items():
+                    titles = {
+                        "bar": f"Gráfico de barras de {col}",
+                        "pie": f"Gráfico de sectores de {col}",
+                        "bar_ogive": f"Gráfico de barras con ojiva de {col}",
+                        "histogram": f"Histograma de frecuencias de {col}",
+                        "freq_poly_ogive": f"Polígono de frecuencias y ojiva de {col}",
+                        "boxplot": f"Diagrama de caja y bigotes de {col}",
+                    }
+                    self.export_chart(chart_bytes, titles.get(chart_key, f"Gráfico de {col}"))
+                    self._add_note()
 
-                if charts:
-                    self._add_heading_apa("Gráficos Estadísticos", level=2)
-                    for chart_key, chart_bytes in charts.items():
-                        titles = {
-                            "bar": f"Gráfico de barras de {col}",
-                            "pie": f"Gráfico de sectores de {col}",
-                            "bar_ogive": f"Gráfico de barras con ojiva de {col}",
-                            "histogram": f"Histograma de frecuencias de {col}",
-                            "freq_poly_ogive": f"Polígono de frecuencias y ojiva de {col}",
-                            "boxplot": f"Diagrama de caja y bigotes de {col}",
-                        }
-                        self.export_chart(chart_bytes, titles.get(chart_key, f"Gráfico de {col}"))
-                        self._add_note()
+            if measures.get("type") == "cualitativa":
+                mode_val = measures.get("mode", "N/A")
+                fi = 0
+                porcentaje = 0.0
+                table = freq_result.get("table")
+                if table is not None and not table.empty:
+                    mode_row = table[table.iloc[:, 0].astype(str) == str(mode_val)]
+                    if not mode_row.empty:
+                        fi = int(mode_row["fi"].values[0])
+                        porcentaje = float(mode_row["hi%"].values[0])
+                texto_interp = (
+                    f"La categoría predominante es '{mode_val}', con una frecuencia "
+                    f"absoluta de {fi} observaciones, lo que representa el "
+                    f"{porcentaje:.2f}% del total de la muestra analizada."
+                )
+            else:
+                texto_interp = (
+                    f"En promedio, el valor es {measures['mean']:.2f}, con los datos "
+                    f"desviándose de este promedio en {measures['std_dev']:.2f} unidades. "
+                    f"El 50% de la muestra se concentra por debajo de "
+                    f"{measures['median']:.2f}, mientras que el 75% reporta valores "
+                    f"menores o iguales a {measures.get('Q3', 0):.2f}."
+                )
 
-                if measures.get("type") == "cualitativa":
-                    mode_val = measures.get("mode", "N/A")
-                    fi = 0
-                    porcentaje = 0.0
-                    table = freq_result.get("table")
-                    if table is not None and not table.empty:
-                        mode_row = table[table.iloc[:, 0].astype(str) == str(mode_val)]
-                        if not mode_row.empty:
-                            fi = int(mode_row["fi"].values[0])
-                            porcentaje = float(mode_row["hi%"].values[0])
-                    texto_interp = (
-                        f"La categoría predominante es '{mode_val}', con una frecuencia "
-                        f"absoluta de {fi} observaciones, lo que representa el "
-                        f"{porcentaje:.2f}% del total de la muestra analizada."
-                    )
-                else:
-                    texto_interp = (
-                        f"En promedio, el valor es {measures['mean']:.2f}, con los datos "
-                        f"desviándose de este promedio en {measures['std_dev']:.2f} unidades. "
-                        f"El 50% de la muestra se concentra por debajo de "
-                        f"{measures['median']:.2f}, mientras que el 75% reporta valores "
-                        f"menores o iguales a {measures.get('Q3', 0):.2f}."
-                    )
+            self._add_heading_apa("Interpretación", level=2)
+            p = self.doc.add_paragraph()
+            run = p.add_run(texto_interp)
+            run.font.name = APA_FONT
+            run.font.size = APA_SIZE
+            p.paragraph_format.space_after = Pt(8)
 
-                self._add_heading_apa("Interpretación", level=2)
-                p = self.doc.add_paragraph()
-                run = p.add_run(texto_interp)
-                run.font.name = APA_FONT
-                run.font.size = APA_SIZE
-                p.paragraph_format.space_after = Pt(8)
+            self.doc.add_page_break()
 
-                self.doc.add_page_break()
-
-            self.save(filepath)
-            return filepath
-        finally:
-            ChartGenerator.white_bg = False
+        self.save(filepath)
+        return filepath
