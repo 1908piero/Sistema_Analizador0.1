@@ -272,19 +272,24 @@ def export_apa():
     if 'df_json' not in session:
         return jsonify({'success': False, 'error': 'No hay datos cargados.'})
 
-    df = pd.read_json(io.StringIO(session['df_json']), orient='split')
-    classification = session['classification']
+    try:
+        df = pd.read_json(io.StringIO(session['df_json']), orient='split')
+        classification = session['classification']
 
-    exporter = APA7Exporter()
-    output_path = os.path.join(app.config['UPLOAD_FOLDER'], 'Reporte_Estadistico_APA7.docx')
-    exporter.export_full_analysis(
-        df=df,
-        classification=classification,
-        filepath=output_path,
-    )
+        exporter = APA7Exporter()
+        output_path = os.path.join(app.config['UPLOAD_FOLDER'], 'Reporte_Estadistico_APA7.docx')
+        exporter.export_full_analysis(
+            df=df,
+            classification=classification,
+            filepath=output_path,
+        )
 
-    return send_file(output_path, as_attachment=True,
-                     download_name='Reporte_Estadistico_APA7.docx')
+        return send_file(output_path, as_attachment=True,
+                         download_name='Reporte_Estadistico_APA7.docx')
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 
 @main_bp.route('/api/reclassify', methods=['POST'])
