@@ -208,12 +208,10 @@ class APA7Exporter:
         df = pd.DataFrame(data, columns=["Parámetro", "Valor"])
         self._apa_table_from_df(df, "Parámetros de entrada y resultados del cálculo muestral")
 
-    def export_variable_classification(self, classification: dict, id_vars: set = None):
+    def export_variable_classification(self, classification: dict):
         data = [["Variable", "Tipo"]]
-        id_vars = id_vars or set()
         for var, tipo in classification.items():
-            label = "Individuo (ID)" if var in id_vars else tipo.replace("_", " ").title()
-            data.append([var, label])
+            data.append([var, tipo.replace("_", " ").title()])
         df = pd.DataFrame(data[1:], columns=data[0])
         self._apa_table_from_df(df, "Clasificación automática de variables del dataset")
 
@@ -314,17 +312,12 @@ class APA7Exporter:
                 self.export_sampling(sampling_result)
                 self.doc.add_page_break()
 
-            id_vars = {col for col in df.columns
-                       if DatasetSummary.is_identifier(df[col])}
             self._add_title("Análisis del Dataset", level=0)
-            self.export_variable_classification(classification, id_vars=id_vars)
+            self.export_variable_classification(classification)
 
             for col in df.columns:
                 var_type = classification.get(col, None)
                 if var_type is None or var_type == "desconocido":
-                    continue
-
-                if DatasetSummary.is_identifier(df[col]):
                     continue
 
                 freq_result = FrequencyAnalyzer.compute(df[col], var_type, col)

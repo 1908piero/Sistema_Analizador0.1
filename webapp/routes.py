@@ -150,17 +150,6 @@ def api_analyze(var_name):
 
     data = df[var_name]
 
-    if DatasetSummary.is_identifier(data):
-        return jsonify({
-            'success': True,
-            'data': {
-                'var_name': var_name,
-                'var_type': var_type,
-                'is_id': True,
-                'n_null': int(df[var_name].isna().sum()),
-            }
-        })
-
     freq_result = FrequencyAnalyzer.compute(data, var_type, var_name)
     if freq_result is None:
         return jsonify({'success': False, 'error': f'No se pudo calcular distribución para "{var_name}".'})

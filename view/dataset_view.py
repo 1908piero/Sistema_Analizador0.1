@@ -434,21 +434,6 @@ class DatasetAnalysisView(ctk.CTkFrame):
             return
 
         data = result["data"]
-        is_id = data.get("is_id", False)
-
-        if is_id:
-            self.export_btn.configure(state="normal")
-            self.results_area.clear()
-            self.results_area.add_section_title(
-                f"{var_name} — Identificador único"
-            )
-            self.results_area.add_text(
-                "Esta variable corresponde al 'Individuo' o identificador "
-                "único de la muestra, por lo que no se somete a "
-                "distribución estadística."
-            )
-            return
-
         freq_result = data["freq_result"]
         measures = data["measures"]
         charts = data["charts"]

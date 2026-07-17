@@ -329,12 +329,6 @@ class MeasuresCalculator:
 
 class DatasetSummary:
     @staticmethod
-    def is_identifier(data: pd.Series) -> bool:
-        data_clean = data.dropna()
-        n = len(data_clean)
-        return n > 0 and data_clean.nunique() == n
-
-    @staticmethod
     def summary_statistics(df: pd.DataFrame, classification: dict) -> pd.DataFrame:
         quant_vars = [col for col, typ in classification.items()
                       if typ.startswith("cuantitativa")]
@@ -368,16 +362,6 @@ class DatasetSummary:
     def generate_interpretation(measures: dict, var_name: str, freq_result: dict = None) -> str:
         if measures is None:
             return ""
-
-        if freq_result:
-            n = freq_result.get("n", 0)
-            unique_vals = freq_result.get("unique_values", 0)
-            if n > 0 and unique_vals == n:
-                return (
-                    f"Esta variable corresponde al 'Individuo' o identificador "
-                    f"único de la muestra, por lo que no se somete a "
-                    f"distribución estadística."
-                )
 
         if measures.get("type") == "cualitativa":
             mode_val = measures.get("mode", "N/A")

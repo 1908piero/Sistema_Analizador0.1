@@ -198,18 +198,6 @@ class DatasetController:
 
             n_null = int(data.isna().sum())
 
-            if DatasetSummary.is_identifier(data):
-                self._current_var = var_name
-                return {
-                    "success": True,
-                    "data": {
-                        "var_name": var_name,
-                        "var_type": var_type,
-                        "is_id": True,
-                        "n_null": n_null,
-                    }
-                }
-
             freq_result = FrequencyAnalyzer.compute(data, var_type, var_name)
             if freq_result is None:
                 return {"success": False, "error": f"No se pudo calcular la distribución para '{var_name}'."}
