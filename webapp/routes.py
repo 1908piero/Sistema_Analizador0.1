@@ -150,6 +150,17 @@ def api_analyze(var_name):
 
     data = df[var_name]
 
+    if DatasetSummary.is_identifier(data):
+        return jsonify({
+            'success': True,
+            'data': {
+                'var_name': var_name,
+                'var_type': var_type,
+                'is_id': True,
+                'n_null': int(df[var_name].isna().sum()),
+            }
+        })
+
     freq_result = FrequencyAnalyzer.compute(data, var_type, var_name)
     if freq_result is None:
         return jsonify({'success': False, 'error': f'No se pudo calcular distribución para "{var_name}".'})
@@ -157,7 +168,7 @@ def api_analyze(var_name):
     measures = MeasuresCalculator.compute(freq_result)
     charts = ChartGenerator.generate_all_charts(freq_result, var_name)
 
-    interpretation = DatasetSummary.generate_interpretation(measures, var_name)
+    interpretation = DatasetSummary.generate_interpretation(measures, var_name, freq_result)
 
     result = {
         'success': True,
@@ -275,42 +286,11 @@ def export_apa():
     df = pd.read_json(io.StringIO(session['df_json']), orient='split')
     classification = session['classification']
 
-    all_analyses = []
-    for col in df.columns:
-        var_type = classification.get(col, 'desconocido')
-        if var_type == 'desconocido':
-            continue
-        data = df[col]
-        freq_result = FrequencyAnalyzer.compute(data, var_type, col)
-        if freq_result is None:
-            continue
-        measures = MeasuresCalculator.compute(freq_result)
-        charts = ChartGenerator.generate_all_charts(freq_result, col)
-        all_analyses.append({
-            'freq_result': freq_result,
-            'measures': measures,
-            'charts': charts,
-        })
-
-    summary = DatasetSummary.summary_statistics(df, classification)
-    interpretations = {}
-    for col in df.columns:
-        data = df[col]
-        var_type = classification.get(col, 'desconocido')
-        if var_type == 'desconocido':
-            continue
-        freq_result = FrequencyAnalyzer.compute(data, var_type, col)
-        if freq_result:
-            measures = MeasuresCalculator.compute(freq_result)
-            interpretations[col] = DatasetSummary.generate_interpretation(measures, col)
-
     exporter = APA7Exporter()
     output_path = os.path.join(app.config['UPLOAD_FOLDER'], 'Reporte_Estadistico_APA7.docx')
     exporter.export_full_analysis(
+        df=df,
         classification=classification,
-        all_analyses=all_analyses,
-        summary=summary,
-        interpretations=interpretations,
         filepath=output_path,
     )
 

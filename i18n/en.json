@@ -132,6 +132,8 @@
   "charts.pie": "Pie Chart",
   "charts.bar_ogive": "Bar Chart with Ogive",
   "charts.histogram": "Frequency Histogram",
+  "charts.freq_poly_ogive": "Frequency Polygon and Ogive",
+  "charts.boxplot": "Box and Whisker Plot",
 
   "measures.mean": "Mean (X̄)",
   "measures.median": "Median (Me)",

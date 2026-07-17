@@ -198,6 +198,18 @@ class DatasetController:
 
             n_null = int(data.isna().sum())
 
+            if DatasetSummary.is_identifier(data):
+                self._current_var = var_name
+                return {
+                    "success": True,
+                    "data": {
+                        "var_name": var_name,
+                        "var_type": var_type,
+                        "is_id": True,
+                        "n_null": n_null,
+                    }
+                }
+
             freq_result = FrequencyAnalyzer.compute(data, var_type, var_name)
             if freq_result is None:
                 return {"success": False, "error": f"No se pudo calcular la distribución para '{var_name}'."}
@@ -247,48 +259,15 @@ class DatasetController:
                       output_path: str = "Reporte_Estadistico_APA7.docx") -> dict:
         try:
             exporter = APA7Exporter()
-
-            all_analyses = []
-            vars_to_export = [var_name] if var_name else list(self.df.columns)
-            for v in vars_to_export:
-                var_type = self.classification.get(v, "desconocido")
-                if var_type == "desconocido":
-                    continue
-                data = self.df[v]
-                freq_result = FrequencyAnalyzer.compute(data, var_type, v)
-                if freq_result is None:
-                    continue
-                measures = MeasuresCalculator.compute(freq_result)
-                charts = ChartGenerator.generate_all_charts(freq_result, v)
-                all_analyses.append({
-                    "freq_result": freq_result,
-                    "measures": measures,
-                    "charts": charts,
-                })
-
-            summary = DatasetSummary.summary_statistics(self.df, self.classification)
-
-            interpretations = {}
-            for v in self.df.columns:
-                var_type = self.classification.get(v, "desconocido")
-                if var_type == "desconocido":
-                    continue
-                data = self.df[v]
-                freq_result = FrequencyAnalyzer.compute(data, var_type, v)
-                if freq_result:
-                    measures = MeasuresCalculator.compute(freq_result)
-                    interpretations[v] = DatasetSummary.generate_interpretation(measures, v)
-
-            exporter.export_full_analysis(
-                sampling_result=sampling_result,
+            df = self.df if var_name is None else self.df[[var_name]]
+            result = exporter.export_full_analysis(
+                df=df,
                 classification=self.classification,
-                all_analyses=all_analyses,
-                summary=summary,
-                interpretations=interpretations,
+                sampling_result=sampling_result,
                 filepath=output_path,
             )
             show_payment = _increment_export_count()
-            return {"success": True, "path": output_path, "show_payment": show_payment}
+            return {"success": True, "path": result, "show_payment": show_payment}
         except Exception as e:
             traceback.print_exc()
             return {"success": False, "error": f"Error al exportar: {str(e)}"}

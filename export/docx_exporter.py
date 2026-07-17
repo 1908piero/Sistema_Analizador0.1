@@ -6,7 +6,9 @@ from docx.oxml.ns import qn, nsdecls
 from docx.oxml import parse_xml
 import pandas as pd
 import io
-
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
 
 APA_FONT = "Times New Roman"
 APA_SIZE = Pt(12)
@@ -190,7 +192,6 @@ class APA7Exporter:
 
     def export_sampling(self, result: dict):
         self._add_title("Cálculo del Tamaño de Muestra - Muestreo Aleatorio Simple (M.A.S.)", level=0)
-
         data = [
             ["Nivel de confianza", f"{result['confidence']}%"],
             ["Valor Z", f"{result['Z']:.3f}"],
@@ -198,21 +199,21 @@ class APA7Exporter:
             ["Probabilidad de fracaso (q)", f"{result['q']:.2f}"],
             ["Error admisible (e)", f"{result['e']}"],
         ]
-
         if result["N"] is not None:
             data.append(["Tamaño de la población (N)", str(result["N"])])
             data.append(["Muestra inicial (n₀)", str(result["n0"])])
             data.append(["Muestra corregida (nf)", str(result["nf"])])
         else:
             data.append(["Tamaño de muestra (n)", str(result["n_unknown"])])
-
         df = pd.DataFrame(data, columns=["Parámetro", "Valor"])
         self._apa_table_from_df(df, "Parámetros de entrada y resultados del cálculo muestral")
 
-    def export_variable_classification(self, classification: dict):
+    def export_variable_classification(self, classification: dict, id_vars: set = None):
         data = [["Variable", "Tipo"]]
+        id_vars = id_vars or set()
         for var, tipo in classification.items():
-            data.append([var, tipo.replace("_", " ").title()])
+            label = "Individuo (ID)" if var in id_vars else tipo.replace("_", " ").title()
+            data.append([var, label])
         df = pd.DataFrame(data[1:], columns=data[0])
         self._apa_table_from_df(df, "Clasificación automática de variables del dataset")
 
@@ -221,10 +222,8 @@ class APA7Exporter:
         var_type = freq_result["var_type"]
         table = freq_result["table"]
         is_grouped = freq_result["is_grouped"]
-
         type_label = var_type.replace("_", " ").title()
         title = f"Distribución de frecuencias de {var_name} ({type_label})"
-
         if is_grouped:
             R = freq_result.get("R", 0)
             m = freq_result.get("m", 0)
@@ -235,20 +234,16 @@ class APA7Exporter:
             display_cols = ["Intervalo", "Xi", "fi", "Fi", "hi", "hi%", "Hi%"]
         else:
             display_cols = [table.columns[0], "fi", "Fi", "hi", "hi%", "Hi%"]
-
         display_df = table[display_cols].copy()
         for col in display_df.columns:
             if display_df[col].dtype in ["float64", "float32"]:
                 display_df[col] = display_df[col].apply(lambda x: f"{x:.2f}")
-
         self._apa_table_from_df(display_df, title)
 
     def export_measures(self, measures: dict, var_name: str):
         if measures is None:
             return
-
         self._add_heading_apa(f"Medidas Estadísticas - {var_name}", level=2)
-
         if measures.get("type") == "cualitativa":
             data = [
                 ["Tamaño de muestra (n)", str(measures["n"])],
@@ -257,7 +252,6 @@ class APA7Exporter:
             df = pd.DataFrame(data, columns=["Medida", "Valor"])
             self._apa_table_from_df(df, "Medidas para variable cualitativa")
             return
-
         central_data = [
             ["Media aritmética (X̄)", f"{measures['mean']:.2f}"],
             ["Mediana (Me)", f"{measures['median']:.2f}"],
@@ -267,7 +261,6 @@ class APA7Exporter:
         ]
         df_central = pd.DataFrame(central_data, columns=["Medida", "Valor"])
         self._apa_table_from_df(df_central, "Medidas de tendencia central")
-
         dispersion_data = [
             ["Rango", f"{measures['range']:.2f}"],
             ["Varianza muestral (S²)", f"{measures['variance']:.2f}"],
@@ -276,7 +269,6 @@ class APA7Exporter:
         ]
         df_disp = pd.DataFrame(dispersion_data, columns=["Medida", "Valor"])
         self._apa_table_from_df(df_disp, "Medidas de dispersión")
-
         position_data = [
             ["Cuartil 1 (Q₁)", f"{measures['Q1']:.2f}"],
             ["Cuartil 2 (Q₂) = Mediana", f"{measures['Q2']:.2f}"],
@@ -292,7 +284,6 @@ class APA7Exporter:
         ]
         df_pos = pd.DataFrame(position_data, columns=["Medida", "Valor"])
         self._apa_table_from_df(df_pos, "Medidas de posición (cuartiles, deciles y percentiles)")
-
         shape_data = [
             ["Coeficiente de asimetría (Sesgo)", f"{measures['skewness']:.2f}"],
             ["Coeficiente de curtosis (Exceso)", f"{measures['kurtosis']:.2f}"],
@@ -309,72 +300,93 @@ class APA7Exporter:
     def save(self, path: str):
         self.doc.save(path)
 
-    def export_full_analysis(self, sampling_result: dict = None,
-                             classification: dict = None,
-                             all_analyses: list = None,
-                             summary: pd.DataFrame = None,
-                             interpretations: dict = None,
+    def export_full_analysis(self, df: pd.DataFrame, classification: dict,
+                             sampling_result: dict = None,
                              filepath: str = "Reporte_Estadistico_APA7.docx"):
-        if sampling_result:
-            self.export_sampling(sampling_result)
-            self.doc.add_page_break()
+        from model.statistics import FrequencyAnalyzer, MeasuresCalculator, DatasetSummary
+        from model.charts import ChartGenerator
 
-        if classification:
+        plt.style.use("default")
+        ChartGenerator.white_bg = True
+
+        try:
+            if sampling_result:
+                self.export_sampling(sampling_result)
+                self.doc.add_page_break()
+
+            id_vars = {col for col in df.columns
+                       if DatasetSummary.is_identifier(df[col])}
             self._add_title("Análisis del Dataset", level=0)
-            self.export_variable_classification(classification)
+            self.export_variable_classification(classification, id_vars=id_vars)
 
-        if summary is not None and not summary.empty:
-            self._add_heading_apa("Estadísticos Descriptivos Generales", level=2)
-            display_df = summary.copy()
-            for col in display_df.columns:
-                if display_df[col].dtype in ["float64", "float32", "float"]:
-                    display_df[col] = display_df[col].apply(lambda x: f"{x:.2f}")
-            self._apa_table_from_df(display_df,
-                "Resumen de estadísticos descriptivos para todas las variables cuantitativas")
-
-        if interpretations:
-            self._add_heading_apa("Interpretación de Resultados", level=2)
-            for var, text in interpretations.items():
-                p = self.doc.add_paragraph()
-                run = p.add_run(f"{var}: ")
-                run.bold = True
-                run.font.name = APA_FONT
-                run.font.size = APA_SIZE
-                run2 = p.add_run(text)
-                run2.font.name = APA_FONT
-                run2.font.size = APA_SIZE
-                p.paragraph_format.space_after = Pt(8)
-
-        if all_analyses:
-            for i, analysis in enumerate(all_analyses):
-                freq_result = analysis.get("freq_result")
-                measures = analysis.get("measures")
-                charts = analysis.get("charts")
-
-                if not freq_result:
+            for col in df.columns:
+                var_type = classification.get(col, None)
+                if var_type is None or var_type == "desconocido":
                     continue
 
-                var_name = freq_result.get("var_name", f"Variable {i+1}")
-                if i > 0:
-                    self.doc.add_page_break()
-                self._add_heading_apa(f"Análisis detallado de: {var_name}", level=1)
+                if DatasetSummary.is_identifier(df[col]):
+                    continue
+
+                freq_result = FrequencyAnalyzer.compute(df[col], var_type, col)
+                if freq_result is None:
+                    continue
+                measures = MeasuresCalculator.compute(freq_result)
+                charts = ChartGenerator.generate_all_charts(freq_result, col)
+
+                self._add_heading_apa(f"Análisis detallado de: {col}", level=1)
 
                 self.export_frequency_table(freq_result, measures)
-
                 if measures:
-                    self.export_measures(measures, var_name)
+                    self.export_measures(measures, col)
 
                 if charts:
                     self._add_heading_apa("Gráficos Estadísticos", level=2)
                     for chart_key, chart_bytes in charts.items():
                         titles = {
-                            "bar": f"Gráfico de barras de {var_name}",
-                            "pie": f"Gráfico de sectores de {var_name}",
-                            "bar_ogive": f"Gráfico de barras con ojiva de {var_name}",
-                            "histogram": f"Histograma de frecuencias de {var_name}",
+                            "bar": f"Gráfico de barras de {col}",
+                            "pie": f"Gráfico de sectores de {col}",
+                            "bar_ogive": f"Gráfico de barras con ojiva de {col}",
+                            "histogram": f"Histograma de frecuencias de {col}",
+                            "freq_poly_ogive": f"Polígono de frecuencias y ojiva de {col}",
+                            "boxplot": f"Diagrama de caja y bigotes de {col}",
                         }
-                        self.export_chart(chart_bytes, titles.get(chart_key, f"Gráfico de {var_name}"))
+                        self.export_chart(chart_bytes, titles.get(chart_key, f"Gráfico de {col}"))
                         self._add_note()
 
-        self.save(filepath)
-        return filepath
+                if measures.get("type") == "cualitativa":
+                    mode_val = measures.get("mode", "N/A")
+                    fi = 0
+                    porcentaje = 0.0
+                    table = freq_result.get("table")
+                    if table is not None and not table.empty:
+                        mode_row = table[table.iloc[:, 0].astype(str) == str(mode_val)]
+                        if not mode_row.empty:
+                            fi = int(mode_row["fi"].values[0])
+                            porcentaje = float(mode_row["hi%"].values[0])
+                    texto_interp = (
+                        f"La categoría predominante es '{mode_val}', con una frecuencia "
+                        f"absoluta de {fi} observaciones, lo que representa el "
+                        f"{porcentaje:.2f}% del total de la muestra analizada."
+                    )
+                else:
+                    texto_interp = (
+                        f"En promedio, el valor es {measures['mean']:.2f}, con los datos "
+                        f"desviándose de este promedio en {measures['std_dev']:.2f} unidades. "
+                        f"El 50% de la muestra se concentra por debajo de "
+                        f"{measures['median']:.2f}, mientras que el 75% reporta valores "
+                        f"menores o iguales a {measures.get('Q3', 0):.2f}."
+                    )
+
+                self._add_heading_apa("Interpretación", level=2)
+                p = self.doc.add_paragraph()
+                run = p.add_run(texto_interp)
+                run.font.name = APA_FONT
+                run.font.size = APA_SIZE
+                p.paragraph_format.space_after = Pt(8)
+
+                self.doc.add_page_break()
+
+            self.save(filepath)
+            return filepath
+        finally:
+            ChartGenerator.white_bg = False

@@ -329,6 +329,12 @@ class MeasuresCalculator:
 
 class DatasetSummary:
     @staticmethod
+    def is_identifier(data: pd.Series) -> bool:
+        data_clean = data.dropna()
+        n = len(data_clean)
+        return n > 0 and data_clean.nunique() == n
+
+    @staticmethod
     def summary_statistics(df: pd.DataFrame, classification: dict) -> pd.DataFrame:
         quant_vars = [col for col, typ in classification.items()
                       if typ.startswith("cuantitativa")]
@@ -359,16 +365,38 @@ class DatasetSummary:
         ])
 
     @staticmethod
-    def generate_interpretation(measures: dict, var_name: str) -> str:
+    def generate_interpretation(measures: dict, var_name: str, freq_result: dict = None) -> str:
         if measures is None:
             return ""
+
+        if freq_result:
+            n = freq_result.get("n", 0)
+            unique_vals = freq_result.get("unique_values", 0)
+            if n > 0 and unique_vals == n:
+                return (
+                    f"Esta variable corresponde al 'Individuo' o identificador "
+                    f"único de la muestra, por lo que no se somete a "
+                    f"distribución estadística."
+                )
+
         if measures.get("type") == "cualitativa":
             mode_val = measures.get("mode", "N/A")
+            fi_text = ""
+            pct_text = ""
+            if freq_result:
+                table = freq_result.get("table")
+                if table is not None and not table.empty:
+                    mode_row = table[table.iloc[:, 0].astype(str) == str(mode_val)]
+                    if not mode_row.empty:
+                        fi_text = str(int(mode_row['fi'].values[0]))
+                        pct_text = f"{mode_row['hi%'].values[0]:.1f}"
             return (
-                f"En cuanto a '{var_name}', la categoría que más se repite es "
-                f"'{mode_val}', lo que significa que es el valor predominante "
-                f"dentro del conjunto de datos analizado."
+                f"La categoría predominante es '{mode_val}', con una "
+                f"frecuencia absoluta de {fi_text} observaciones, "
+                f"representando el {pct_text}% del total de la "
+                f"muestra analizada."
             )
+
         mean = measures["mean"]
         median = measures["median"]
         std = measures["std_dev"]
@@ -376,67 +404,71 @@ class DatasetSummary:
         skew = measures["skewness"]
         kurt = measures["kurtosis"]
         n = measures["n"]
-        diff = abs(mean - median)
+        q3 = measures.get("Q3", 0)
         parts = []
+
         parts.append(
-            f"Al analizar '{var_name}' se obtuvieron {n} observaciones válidas. "
-            f"En promedio, los valores rondan los {mean:.2f} puntos, "
-            f"y al ordenar los datos de menor a mayor, el valor central (mediana) "
-            f"se ubica en {median:.2f}. "
+            f"En promedio, el valor es {mean:.2f}. Los datos presentan "
+            f"una desviación estándar de {std:.2f} unidades respecto a "
+            f"este promedio. "
         )
+
+        parts.append(
+            f"El 50% de las observaciones se concentra por debajo de "
+            f"{median:.2f}, mientras que el 75% reporta valores menores "
+            f"o iguales a {q3:.2f}. "
+        )
+
+        if cv < 15:
+            parts.append(
+                f"Los datos son bastante homogéneos (CV = {cv:.2f}%). "
+            )
+        elif cv > 25:
+            parts.append(
+                f"Los datos son muy heterogéneos y dispersos "
+                f"(CV = {cv:.2f}%). "
+            )
+        else:
+            parts.append(
+                f"La variabilidad de los datos es moderada "
+                f"(CV = {cv:.2f}%). "
+            )
+
+        diff = abs(mean - median)
         if diff < 0.5:
             parts.append(
-                f"Como la media y la mediana son muy cercanas, los datos "
-                f"tienen una distribución bastante simétrica. "
+                f"La media y la mediana son muy cercanas, lo que indica una "
+                f"distribución aproximadamente simétrica "
+                f"(asimetría = {skew:.2f}). "
             )
         elif mean > median:
             parts.append(
-                f"Notamos que la media es un poco más alta que la mediana, "
-                f"lo que sugiere que hay algunos valores elevados que jalan "
-                f"el promedio hacia arriba (asimetría positiva). "
+                f"La media supera a la mediana, evidenciando una asimetría "
+                f"positiva (asimetría = {skew:.2f}), con valores elevados "
+                f"que desplazan el promedio hacia la derecha. "
             )
         else:
             parts.append(
-                f"La mediana es más alta que la media, indicando que existen "
-                f"valores bajos que están jalando el promedio hacia abajo "
-                f"(asimetría negativa). "
+                f"La mediana supera a la media, revelando una asimetría "
+                f"negativa (asimetría = {skew:.2f}), con valores reducidos "
+                f"que concentran el promedio hacia la izquierda. "
             )
-        parts.append(
-            f"Los datos se dispersan en promedio {std:.2f} unidades alrededor "
-            f"de la media, con un coeficiente de variación del {cv:.2f}%. "
-        )
-        if cv < 15:
-            parts.append(
-                f"Esto indica que los datos son bastante homogéneos, "
-                f"es decir, no hay mucha variabilidad entre ellos. "
-            )
-        elif cv < 35:
-            parts.append(
-                f"Esto nos dice que la variabilidad es moderada, "
-                f"ni muy poca ni excesiva. "
-            )
-        else:
-            parts.append(
-                f"Esto revela una alta heterogeneidad en los datos, "
-                f"es decir, los valores están bastante dispersos entre sí. "
-            )
+
         if kurt > 0.5:
             parts.append(
-                f"En cuanto a la forma de la distribución, tiene una curtosis "
-                f"de {kurt:.2f}, lo que significa que es más puntiaguda "
-                f"que una campana normal (leptocúrtica), con valores más "
-                f"concentrados en el centro. "
+                f"En cuanto a la forma, la curtosis de {kurt:.2f} indica una "
+                f"distribución leptocúrtica, con un pico más pronunciado que "
+                f"la normal. "
             )
         elif kurt < -0.5:
             parts.append(
-                f"Respecto a la forma, presenta una curtosis de {kurt:.2f}, "
-                f"indicando que es más aplanada que la distribución normal "
-                f"(platicúrtica), con los datos más dispersos hacia los extremos. "
+                f"Respecto a la forma, la curtosis de {kurt:.2f} revela una "
+                f"distribución platicúrtica, más aplanada que la normal. "
             )
         else:
             parts.append(
-                f"La curtosis de {kurt:.2f} sugiere que la forma de la "
-                f"distribución es similar a la de una campana normal "
-                f"(mesocúrtica). "
+                f"La curtosis de {kurt:.2f} sugiere una distribución "
+                f"mesocúrtica, con apuntamiento similar al de la normal. "
             )
+
         return "".join(parts)

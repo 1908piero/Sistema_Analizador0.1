@@ -132,6 +132,8 @@
   "charts.pie": "Gráfico de Setores (Pizza)",
   "charts.bar_ogive": "Gráfico de Barras com Ogiva",
   "charts.histogram": "Histograma de Frequências",
+  "charts.freq_poly_ogive": "Polígono de Frequências e Ogiva",
+  "charts.boxplot": "Diagrama de Caixa e Bigodes",
 
   "measures.mean": "Média (X̄)",
   "measures.median": "Mediana (Me)",

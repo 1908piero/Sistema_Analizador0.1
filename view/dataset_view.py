@@ -434,6 +434,21 @@ class DatasetAnalysisView(ctk.CTkFrame):
             return
 
         data = result["data"]
+        is_id = data.get("is_id", False)
+
+        if is_id:
+            self.export_btn.configure(state="normal")
+            self.results_area.clear()
+            self.results_area.add_section_title(
+                f"{var_name} — Identificador único"
+            )
+            self.results_area.add_text(
+                "Esta variable corresponde al 'Individuo' o identificador "
+                "único de la muestra, por lo que no se somete a "
+                "distribución estadística."
+            )
+            return
+
         freq_result = data["freq_result"]
         measures = data["measures"]
         charts = data["charts"]
@@ -551,7 +566,7 @@ class DatasetAnalysisView(ctk.CTkFrame):
             all_r = self.controller.analyze_all()
             if all_r["success"]:
                 from model.statistics import DatasetSummary
-                interp_text = DatasetSummary.generate_interpretation(measures, var_name)
+                interp_text = DatasetSummary.generate_interpretation(measures, var_name, freq_result)
                 if interp_text:
                     frame = ctk.CTkFrame(self.results_area, fg_color=CARD_BG, corner_radius=8)
                     frame.pack(fill="x", padx=8, pady=4)
@@ -568,6 +583,8 @@ class DatasetAnalysisView(ctk.CTkFrame):
                     "pie": _("charts.pie"),
                     "bar_ogive": _("charts.bar_ogive"),
                     "histogram": _("charts.histogram"),
+                    "freq_poly_ogive": _("charts.freq_poly_ogive"),
+                    "boxplot": _("charts.boxplot"),
                 }
                 self.results_area.add_subtitle(titles.get(chart_key, chart_key))
                 self.results_area.add_chart(chart_bytes, width=540, height=330)
