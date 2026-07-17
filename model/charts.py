@@ -107,7 +107,11 @@ class ChartGenerator:
     def discrete_bar_chart(freq_result: dict, var_name: str) -> io.BytesIO:
         table = freq_result["table"]
         n = freq_result["n"]
-        values = table.iloc[:, 0].astype(float)
+        is_grouped = freq_result.get("is_grouped", False)
+        if is_grouped:
+            values = table["Xi"].values.astype(float)
+        else:
+            values = table.iloc[:, 0].astype(float)
         fi = table["fi"].values
         Fi = table["Fi"].values
 
@@ -219,12 +223,13 @@ class ChartGenerator:
     @staticmethod
     def generate_all_charts(freq_result: dict, var_name: str) -> dict:
         var_type = freq_result["var_type"]
+        is_grouped = freq_result.get("is_grouped", False)
         charts = {}
 
         if var_type.startswith("cualitativa"):
             charts["bar"] = ChartGenerator.bar_chart(freq_result, var_name)
             charts["pie"] = ChartGenerator.pie_chart(freq_result, var_name)
-        elif var_type == "cuantitativa_discreta":
+        elif var_type == "cuantitativa_discreta" and not is_grouped:
             charts["bar_ogive"] = ChartGenerator.discrete_bar_chart(freq_result, var_name)
         else:
             charts["histogram"] = ChartGenerator.histogram_chart(freq_result, var_name)
