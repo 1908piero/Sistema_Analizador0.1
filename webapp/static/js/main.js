@@ -105,6 +105,19 @@ $(function () {
         html += '<span class="var-badge badge-' + typeToClass(data.var_type) + '">' + typeToLabel(data.var_type) + '</span>';
         html += '</div>';
 
+        // ID variable — show message and stop
+        if (data.is_id) {
+            html += '<div class="alert alert-info"><i class="fas fa-id-card me-2"></i>';
+            html += 'Esta variable corresponde al <strong>Individuo</strong> o identificador único de la muestra, ';
+            html += 'por lo que no se somete a distribución estadística.';
+            if (data.n_null > 0) {
+                html += '<br><small>Valores perdidos: ' + data.n_null + '</small>';
+            }
+            html += '</div></div>';
+            container.html(html);
+            return;
+        }
+
         // N info
         html += '<p class="text-muted small">n = ' + data.freq_table.n + ' observaciones' +
                 (data.n_null > 0 ? ' (' + data.n_null + ' valores perdidos)' : '') + '</p>';
@@ -207,9 +220,11 @@ $(function () {
             html += '<div class="row">';
             var chartLabels = {
                 bar: 'Gráfico de Barras',
-                pie: 'Gráfico de Sectores',
+                pie: 'Gráfico de Sectores (Pastel)',
                 bar_ogive: 'Barras con Ojiva',
-                histogram: 'Histograma de Frecuencias'
+                histogram: 'Histograma de Frecuencias',
+                freq_poly_ogive: 'Polígono de Frecuencias y Ojiva',
+                boxplot: 'Diagrama de Caja y Bigotes'
             };
             Object.keys(data.charts).forEach(function (key) {
                 html += '<div class="col-md-6">';
