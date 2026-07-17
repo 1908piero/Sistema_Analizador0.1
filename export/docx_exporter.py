@@ -314,15 +314,20 @@ class APA7Exporter:
             if var_type is None or var_type == "desconocido":
                 continue
 
-            freq_result = FrequencyAnalyzer.compute(df[col], var_type, col)
-            if freq_result is None:
-                continue
-            measures = MeasuresCalculator.compute(freq_result)
-            charts = ChartGenerator.generate_all_charts(freq_result, col)
+            try:
+                freq_result = FrequencyAnalyzer.compute(df[col], var_type, col)
+                if freq_result is None:
+                    continue
+                measures = MeasuresCalculator.compute(freq_result)
+                charts = ChartGenerator.generate_all_charts(freq_result, col)
 
-            self._add_heading_apa(f"Análisis detallado de: {col}", level=1)
+                self._add_heading_apa(f"Análisis detallado de: {col}", level=1)
 
-            self.export_frequency_table(freq_result, measures)
+                self.export_frequency_table(freq_result, measures)
+            except Exception as e:
+                import traceback
+                traceback.print_exc()
+                raise RuntimeError(f"Error en variable '{col}': {e}") from e
 
             if measures.get("type") == "cualitativa":
                 mode_val = measures.get("mode", "N/A")
